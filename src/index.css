@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 37 33% 94%;
+    --foreground: 30 10% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 30 10% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 10% 15%;
+    --primary: 30 35% 49%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 37 25% 90%;
+    --secondary-foreground: 30 10% 15%;
+    --muted: 37 20% 88%;
+    --muted-foreground: 30 8% 45%;
+    --accent: 42 45% 56%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 37 20% 85%;
+    --input: 37 20% 85%;
+    --ring: 30 35% 49%;
+    --radius: 0.625rem;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 0 0% 12%;
+    --foreground: 37 20% 92%;
+    --card: 0 0% 16%;
+    --card-foreground: 37 20% 92%;
+    --popover: 0 0% 16%;
+    --popover-foreground: 37 20% 92%;
+    --primary: 42 40% 57%;
+    --primary-foreground: 0 0% 12%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 37 20% 92%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 37 15% 60%;
+    --accent: 42 40% 57%;
+    --accent-foreground: 0 0% 12%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 22%;
+    --input: 0 0% 22%;
+    --ring: 42 40% 57%;
+    --success: 142 60% 45%;
+    --success-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#f8b57267] to-[#f2cd7694];
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Calendar styles */
+.rdp {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-background-color: hsl(var(--primary) / 0.1);
+}
+
+/* Animation */
+/* Animasi untuk logo */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 10s linear infinite;
+}
+
+/* Shine sweep animation */
+@keyframes shine-sweep {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.animate-shine {
+  animation: shine-sweep 1.5s ease-in-out;
+}

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { Toaster } from '@/components/ui/sonner';
 import SetupWarning from '@/components/SetupWarning';
@@ -15,7 +16,6 @@ import TransactionForm from '@/pages/TransactionForm';
 import Calendar from '@/pages/Calendar';
 import Reports from '@/pages/Reports';
 
-// Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -34,7 +34,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-// Public Route Component (redirect if logged in)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -54,7 +53,6 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppRoutes: React.FC = () => {
-  // Check if Supabase is configured
   if (!isSupabaseConfigured()) {
     return (
       <Routes>
@@ -65,75 +63,14 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        }
-      />
-
-      {/* Protected Routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/transactions"
-        element={
-          <ProtectedRoute>
-            <Transactions />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/transactions/new"
-        element={
-          <ProtectedRoute>
-            <TransactionForm />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/transactions/edit/:id"
-        element={
-          <ProtectedRoute>
-            <TransactionForm />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/calendar"
-        element={
-          <ProtectedRoute>
-            <Calendar />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <Reports />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Default Redirect */}
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+      <Route path="/transactions/new" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
+      <Route path="/transactions/edit/:id" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
+      <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
@@ -143,12 +80,14 @@ const AppRoutes: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-        <Toaster position="top-right" />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+          <Toaster position="top-right" />
+        </AuthProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 };

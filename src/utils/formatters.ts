@@ -1,3 +1,5 @@
+// utils/formatters.ts - VERSI BERSIH & LENGKAP
+
 export const formatRupiah = (amount: number): string => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -5,6 +7,19 @@ export const formatRupiah = (amount: number): string => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+};
+
+export const formatCompactNumber = (amount: number): string => {
+  if (amount >= 1000000000) {
+    return `Rp${(amount / 1000000000).toFixed(1)}M`;
+  }
+  if (amount >= 1000000) {
+    return `Rp${(amount / 1000000).toFixed(1)}jt`;
+  }
+  if (amount >= 1000) {
+    return `Rp${(amount / 1000).toFixed(0)}k`;
+  }
+  return `Rp${amount}`;
 };
 
 export const formatNumber = (num: number): string => {

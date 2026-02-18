@@ -4,52 +4,74 @@
 
 @layer base {
   :root {
-    --background: 37 33% 94%;
-    --foreground: 30 10% 15%;
+    /* Light Mode - Professional */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 30 10% 15%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 30 10% 15%;
-    --primary: 30 35% 49%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 37 25% 90%;
-    --secondary-foreground: 30 10% 15%;
-    --muted: 37 20% 88%;
-    --muted-foreground: 30 8% 45%;
-    --accent: 42 45% 56%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 37 20% 85%;
-    --input: 37 20% 85%;
-    --ring: 30 35% 49%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 43 74% 66%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 43 74% 66%;
     --radius: 0.625rem;
     --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
+    --success-foreground: 210 40% 98%;
+    
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 222 47% 11%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 43 74% 66%;
   }
 
   .dark {
-    --background: 0 0% 12%;
-    --foreground: 37 20% 92%;
-    --card: 0 0% 16%;
-    --card-foreground: 37 20% 92%;
-    --popover: 0 0% 16%;
-    --popover-foreground: 37 20% 92%;
-    --primary: 42 40% 57%;
-    --primary-foreground: 0 0% 12%;
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 37 20% 92%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 37 15% 60%;
-    --accent: 42 40% 57%;
-    --accent-foreground: 0 0% 12%;
+    /* Dark Mode - Finance Premium */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 43 74% 56%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 222 47% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 47% 14%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 43 74% 56%;
+    --accent-foreground: 222 47% 6%;
     --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 22%;
-    --input: 0 0% 22%;
-    --ring: 42 40% 57%;
-    --success: 142 60% 45%;
-    --success-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 222 47% 16%;
+    --input: 222 47% 16%;
+    --ring: 43 74% 56%;
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
+    
+    /* Sidebar Dark */
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 43 74% 56%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 47% 14%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 47% 16%;
+    --sidebar-ring: 43 74% 56%;
   }
 }
 
@@ -59,19 +81,49 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#f8b57267] to-[#f2cd7694];
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-gold to-gold-light;
+  }
+  
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-gold via-gold-light to-gold-dark;
+  }
+  
+  .bg-gradient-finance {
+    @apply bg-gradient-to-br from-finance-dark via-finance-surface to-finance-card;
+  }
+  
+  .glass-effect {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:border-gold/30 hover:-translate-y-1;
+  }
+  
+  .stat-card-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .stat-card-glow::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent opacity-0 transition-opacity duration-500;
+  }
+  
+  .stat-card-glow:hover::before {
+    @apply opacity-100;
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Premium */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -79,12 +131,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
 /* Calendar styles */
@@ -93,31 +145,27 @@
   --rdp-background-color: hsl(var(--primary) / 0.1);
 }
 
-/* Animation */
-/* Animasi untuk logo */
+/* Animations */
 @keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-spin-slow {
   animation: spin-slow 10s linear infinite;
 }
 
-/* Shine sweep animation */
 @keyframes shine-sweep {
-  0% {
-    transform: translateX(-100%) skewX(-15deg);
-  }
-  100% {
-    transform: translateX(200%) skewX(-15deg);
-  }
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
 }
 
 .animate-shine {
   animation: shine-sweep 1.5s ease-in-out;
+}
+
+/* Number font for financial data */
+.font-mono-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }

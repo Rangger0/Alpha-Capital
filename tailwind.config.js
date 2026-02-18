@@ -48,6 +48,26 @@ module.exports = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // NEW: Finance Premium Colors
+        gold: {
+          DEFAULT: "#C6A75E",
+          light: "#D4B896",
+          dark: "#A68B4B",
+          muted: "#8B7355",
+        },
+        finance: {
+          dark: "#0F172A",
+          surface: "#111827",
+          card: "#1E293B",
+          success: "#10B981",
+          danger: "#EF4444",
+          info: "#3B82F6",
+          warning: "#F59E0B",
+        }
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'IBM Plex Mono', 'monospace'],
+        numeric: ['JetBrains Mono', 'IBM Plex Mono', 'monospace'],
       },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",
@@ -58,6 +78,8 @@ module.exports = {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        glow: "0 0 20px rgba(198, 167, 94, 0.15)",
+        "glow-lg": "0 0 40px rgba(198, 167, 94, 0.2)",
       },
       keyframes: {
         "accordion-down": {
@@ -72,11 +94,21 @@ module.exports = {
           "0%,70%,100%": { opacity: "1" },
           "20%,50%": { opacity: "0" },
         },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(198, 167, 94, 0.15)" },
+          "50%": { boxShadow: "0 0 40px rgba(198, 167, 94, 0.3)" },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "caret-blink": "caret-blink 1.25s ease-out infinite",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "slide-up": "slide-up 0.3s ease-out",
       },
     },
   },

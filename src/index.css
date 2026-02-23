@@ -5,64 +5,109 @@
 @tailwind utilities;
 
 /* ============================================
-   CSS VARIABLES - ROOT LEVEL (BUKAN di @layer)
+   CSS VARIABLES - ROOT LEVEL (LIGHT MODE)
    ============================================ */
 
 :root {
-  /* Light Mode - Biru */
-  --theme-primary: 217 91% 60%; /* blue-500 */
-  --theme-secondary: 213 94% 68%; /* blue-400 */
-  --theme-glow: 59 130 246; /* blue-500 rgb */
-  
+  /* Light Mode - Financial Blue Theme */
+  --theme-primary: 217 91% 60%;
+  --theme-secondary: 213 94% 68%;
+  --theme-glow: 59 130 246;
+
+  /* Financial Status Colors */
+  --finance-positive: 160 84% 39%;
+  --finance-negative: 0 72% 51%;
+  --finance-warning: 38 92% 50%;
+  --finance-neutral: 215 16% 47%;
+
   /* Shadcn UI Variables (Light) */
   --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
+  --foreground: 222 47% 11%;
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 222.2 47.4% 11.2%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 222.2 84% 4.9%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 60%;
   --radius: 0.5rem;
+
+  /* Custom Financial Variables */
+  --finance-bg: #ffffff;
+  --finance-card: #ffffff;
+  --finance-card-hover: #f8fafc;
+  --finance-border: #e2e8f0;
+  --finance-text: #0f172a;
+  --finance-text-secondary: #475569;
+  --finance-text-muted: #94a3b8;
 }
 
+/* ============================================
+   DARK MODE - BLOOMBERG TERMINAL THEME
+   ============================================ */
+
 .dark {
-  /* Dark Mode - Hijau */
-  --theme-primary: 142 71% 45%; /* green-500 */
-  --theme-secondary: 142 69% 58%; /* green-400 */
-  --theme-glow: 16 185 129; /* green-500 rgb */
-  
-  /* Shadcn UI Variables (Dark) */
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  /* Bloomberg Theme Colors */
+  --theme-primary: 37 100% 50%;
+  --theme-secondary: 37 100% 60%;
+  --theme-glow: 255 165 2;
+
+  /* Financial Status Colors (Dark) */
+  --finance-positive: 142 76% 36%;
+  --finance-negative: 0 84% 60%;
+  --finance-warning: 38 92% 50%;
+  --finance-neutral: 0 0% 63%;
+
+  /* Shadcn UI Variables (Dark - Bloomberg) */
+  --background: 0 0% 3%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 37 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 8%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 37 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 15%;
+  --input: 0 0% 15%;
+  --ring: 37 100% 50%;
+
+  /* Custom Bloomberg Variables */
+  --bloomberg-green: #f94104;
+  --bloomberg-red: #ff4757;
+  --bloomberg-orange: #ffa502;
+  --bloomberg-blue: #3742fa;
+  --bloomberg-bg: #080808;
+  --bloomberg-card: #0d0d0d;
+  --bloomberg-border: #262626;
+  --bloomberg-text: #ffffff;
+  --bloomberg-muted: #999999;
+
+  /* Financial Variables (Dark) */
+  --finance-bg: #080808;
+  --finance-card: #0d0d0d;
+  --finance-card-hover: #141414;
+  --finance-border: #262626;
+  --finance-text: #ffffff;
+  --finance-text-secondary: #a0a0a0;
+  --finance-text-muted: #666666;
 }
 
 /* ============================================
@@ -73,11 +118,11 @@
   * {
     @apply border-border;
   }
-  
+
   html {
     font-family: 'JetBrains Mono', monospace;
   }
-  
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -95,40 +140,39 @@
     animation: blink 1s step-end infinite;
     color: hsl(var(--theme-primary));
   }
-  
- @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
 
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
 
-  
+  .animate-blink {
+    animation: blink 1s step-end infinite;
+  }
+
   /* Typing Effect */
   .typing-effect {
     overflow: hidden;
     white-space: nowrap;
     animation: typing 2s steps(40, end);
   }
-  
+
   @keyframes typing {
     from { width: 0; }
     to { width: 100%; }
   }
-  
+
   /* Boot Sequence */
   .boot-line {
     animation: boot-text 0.3s ease-out forwards;
     opacity: 0;
   }
-  
+
   @keyframes boot-text {
     0% { opacity: 0; transform: translateY(10px); }
     100% { opacity: 1; transform: translateY(0); }
   }
-  
+
   /* Scanline Effect */
   .scanlines::before {
     content: '';
@@ -146,36 +190,36 @@
     pointer-events: none;
     z-index: 9999;
   }
-  
+
   /* THEME UTILITY CLASSES */
   .theme-text {
     color: hsl(var(--theme-primary));
   }
-  
+
   .theme-text-secondary {
     color: hsl(var(--theme-secondary));
   }
-  
+
   .theme-border {
     border-color: hsl(var(--theme-primary) / 0.3);
   }
-  
+
   .theme-bg {
     background-color: hsl(var(--theme-primary) / 0.1);
   }
-  
+
   .theme-bg-hover:hover {
     background-color: hsl(var(--theme-primary) / 0.2);
   }
-  
+
   .theme-glow {
     box-shadow: 0 0 30px hsl(var(--theme-primary) / 0.15);
   }
-  
+
   .text-glow {
     text-shadow: 0 0 10px hsl(var(--theme-primary) / 0.3);
   }
-  
+
   /* Status Dot */
   .status-dot {
     width: 8px;
@@ -185,79 +229,72 @@
     box-shadow: 0 0 8px hsl(var(--theme-primary));
     animation: pulse-dot 2s infinite;
   }
-  
+
   @keyframes pulse-dot {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
-  
-  /* ============================================
-   LINUX PIPES BACKGROUND - OPTIMIZED
-   ============================================ */
 
-.pipes-bg {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-  contain: layout style paint; /* 🔥 Isolate rendering */
-}
+  /* LINUX PIPES BACKGROUND */
+  .pipes-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+    contain: layout style paint;
+  }
 
-.pipe {
-  position: absolute;
-  border-radius: 9999px;
-  will-change: transform;
-  transform: translate3d(0, 0, 0); /* 🔥 GPU layer */
-  opacity: 0.15;
-}
+  .pipe {
+    position: absolute;
+    border-radius: 9999px;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    opacity: 0.15;
+  }
 
-/* Horizontal pipes */
-.pipe-h {
-  height: 2px;
-  width: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    hsl(var(--theme-primary)) 50%, 
-    transparent 100%
-  );
-  /* 🔥 Hapus box-shadow, gunakan background glow */
-  animation: moveH 20s linear infinite; /* Lebih lambat = lebih smooth */
-}
+  .pipe-h {
+    height: 2px;
+    width: 100%;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      hsl(var(--theme-primary)) 50%, 
+      transparent 100%
+    );
+    animation: moveH 20s linear infinite;
+  }
 
-/* Vertical pipes */
-.pipe-v {
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(180deg, 
-    transparent 0%, 
-    hsl(var(--theme-primary)) 50%, 
-    transparent 100%
-  );
-  animation: moveV 20s linear infinite;
-}
+  .pipe-v {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, 
+      transparent 0%, 
+      hsl(var(--theme-primary)) 50%, 
+      transparent 100%
+    );
+    animation: moveV 20s linear infinite;
+  }
 
-/* 🔥 Simplified animations - NO opacity changes */
-@keyframes moveH {
-  from { transform: translate3d(-100%, 0, 0); }
-  to { transform: translate3d(100vw, 0, 0); }
-}
+  @keyframes moveH {
+    from { transform: translate3d(-100%, 0, 0); }
+    to { transform: translate3d(100vw, 0, 0); }
+  }
 
-@keyframes moveV {
-  from { transform: translate3d(0, -100%, 0); }
-  to { transform: translate3d(0, 100vh, 0); }
-}
+  @keyframes moveV {
+    from { transform: translate3d(0, -100%, 0); }
+    to { transform: translate3d(0, 100vh, 0); }
+  }
 
-/* Grid Background */
-.grid-bg {
-  position: absolute;
-  inset: 0;
-  background-size: 100px 100px; /* Lebih besar = lebih sedikit render */
-  background-image: 
-    linear-gradient(hsl(var(--theme-primary) / 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--theme-primary) / 0.02) 1px, transparent 1px);
-}
-  
+  /* Grid Background */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-size: 100px 100px;
+    background-image: 
+      linear-gradient(hsl(var(--theme-primary) / 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--theme-primary) / 0.02) 1px, transparent 1px);
+  }
+
   /* Terminal Window */
   .terminal-window {
     position: relative;
@@ -268,7 +305,7 @@
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1),
                 0 0 0 1px hsl(var(--theme-primary) / 0.1);
   }
-  
+
   .terminal-header {
     display: flex;
     align-items: center;
@@ -277,10 +314,27 @@
     background: hsl(var(--secondary) / 0.5);
     border-bottom: 1px solid hsl(var(--border));
   }
-  
+
   .glow-theme {
     box-shadow: 0 0 20px hsl(var(--theme-primary) / 0.3),
                 0 0 40px hsl(var(--theme-primary) / 0.1);
+  }
+
+  /* Financial Amount Colors */
+  .text-income {
+    color: hsl(var(--finance-positive));
+  }
+
+  .text-expense {
+    color: hsl(var(--finance-negative));
+  }
+
+  .dark .text-income {
+    color: var(--bloomberg-green);
+  }
+
+  .dark .text-expense {
+    color: var(--bloomberg-red);
   }
 }
 
@@ -290,12 +344,18 @@
 
 @layer utilities {
   .text-gradient-terminal {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-400 via-slate-500 to-slate-400;
+    background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, #94a3b8, #64748b, #94a3b8);
+  }
+
+  .dark .text-gradient-terminal {
+    background-image: linear-gradient(to right, #9ca3af, #6b7280, #9ca3af);
   }
 }
 
 /* ============================================
-   GLOBAL STYLES (outside @layer)
+   GLOBAL STYLES
    ============================================ */
 
 ::selection {
@@ -303,112 +363,63 @@
   color: hsl(var(--foreground));
 }
 
+/* Scrollbar - Light Mode */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--theme-primary) / 0.3);
-  border-radius: 4px;
+  background: hsl(var(--border));
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--theme-primary) / 0.5);
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* ============================================
-   LINUX PIPES BACKGROUND - SMOOTH MOVING
-   ============================================ */
-
-.pipes-bg {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
+/* Scrollbar - Dark Mode */
+.dark ::-webkit-scrollbar-track {
+  background: #0d0d0d;
 }
 
-.pipe {
-  position: absolute;
-  border-radius: 9999px;
-  will-change: transform; /* Performa lebih smooth */
-  opacity: 0.12;
+.dark ::-webkit-scrollbar-thumb {
+  background: #333333;
 }
 
-.pipe-h {
-  height: 1px;
-  width: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    hsl(var(--theme-primary) / 0.8) 20%, 
-    hsl(var(--theme-secondary)) 50%, 
-    hsl(var(--theme-primary) / 0.8) 80%, 
-    transparent 100%
-  );
-  box-shadow: 
-    0 0 8px hsl(var(--theme-glow) / 0.6),
-    0 0 16px hsl(var(--theme-glow) / 0.3);
-  animation: moveH linear infinite;
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #444444;
 }
 
-.pipe-v {
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, 
-    transparent 0%, 
-    hsl(var(--theme-primary) / 0.8) 20%, 
-    hsl(var(--theme-secondary)) 50%, 
-    hsl(var(--theme-primary) / 0.8) 80%, 
-    transparent 100%
-  );
-  box-shadow: 
-    0 0 8px hsl(var(--theme-glow) / 0.6),
-    0 0 16px hsl(var(--theme-glow) / 0.3);
-  animation: moveV linear infinite;
+/* Input autofill - Light mode */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: hsl(var(--foreground));
+  -webkit-box-shadow: 0 0 0px 1000px hsl(var(--background)) inset;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Animasi Smooth */
-@keyframes moveH {
-  0% { 
-    transform: translateX(-100%); 
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.12;
-  }
-  90% {
-    opacity: 0.12;
-  }
-  100% { 
-    transform: translateX(100vw); 
-    opacity: 0;
-  }
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
-@keyframes moveV {
-  0% { 
-    transform: translateY(-100%); 
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.12;
-  }
-  90% {
-    opacity: 0.12;
-  }
-  100% { 
-    transform: translateY(100vh); 
-    opacity: 0;
-  }
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
-/* Grid Background - Lebih subtle */
-.grid-bg {
-  position: absolute;
-  inset: 0;
-  background-size: 60px 60px;
-  background-image: 
-    linear-gradient(hsl(var(--theme-primary) / 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--theme-primary) / 0.025) 1px, transparent 1px);
-}

@@ -82,7 +82,7 @@ const Register = () => {
               <span className="animate-pulse">{'_'}</span>
             </div>
             <span className="ml-3 text-xs text-muted-foreground font-mono">
-              alpha_capital_register — bash — 80×24
+              alpha_capital_register
             </span>
           </div>
 

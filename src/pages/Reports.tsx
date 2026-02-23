@@ -1,4 +1,3 @@
-// src/pages/Reports.tsx
 import React, { useEffect, useState } from 'react';
 import { Download, FileText, TrendingUp, TrendingDown, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,7 +12,6 @@ import {
   TerminalCard,
   TerminalButton,
   TerminalPrompt,
-  TerminalText,
   TerminalBadge,
 } from '@/components/ui/TerminalCard';
 import {
@@ -50,12 +48,24 @@ const Reports: React.FC = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const { t, language, formatCurrency, formatDate: formatDateLang } = useLanguage();
+  const isDark = theme === 'dark';
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [reportType, setReportType] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Colors
+  const colors = {
+    green: isDark ? '#00d084' : '#22c55e',
+    red: isDark ? '#ff4757' : '#ef4444',
+    orange: isDark ? '#ffa502' : '#3b82f6',
+    blue: isDark ? '#3742fa' : '#6366f1',
+    chartColors: isDark 
+      ? ['#00d084', '#ffa502', '#3742fa', '#ff6b6b', '#4ecdc4', '#a55eea', '#26de81']
+      : ['#22c55e', '#3b82f6', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'],
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -96,17 +106,17 @@ const Reports: React.FC = () => {
   const prepareChartData = (allTransactions: Transaction[], range: TimeRange): ChartData[] => {
     const data: ChartData[] = [];
     const now = new Date();
-    
+
     let runningBalance = 0;
     allTransactions.forEach((t) => {
       const tDate = new Date(t.date);
       const diffDays = Math.floor((now.getTime() - tDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+
       let isBeforeRange = false;
       if (range === '7days') isBeforeRange = diffDays > 7;
       else if (range === '30days') isBeforeRange = diffDays > 30;
       else if (range === 'year') isBeforeRange = diffDays > 365;
-      
+
       if (isBeforeRange) {
         if (t.type === 'income') runningBalance += t.amount;
         else runningBalance -= t.amount;
@@ -137,7 +147,7 @@ const Reports: React.FC = () => {
         endDate.setDate(endDate.getDate() - (i * 7));
         const startDate = new Date(endDate);
         startDate.setDate(startDate.getDate() - 6);
-        
+
         data.push({
           date: startDate.toISOString().split('T')[0],
           label: language === 'id' ? `Minggu ${5-i}` : `Week ${5-i}`,
@@ -171,7 +181,7 @@ const Reports: React.FC = () => {
 
     allTransactions.forEach((t) => {
       const tDate = new Date(t.date);
-      
+
       if (range === '7days') {
         const dayData = data.find(d => d.date === t.date);
         if (dayData) {
@@ -253,7 +263,7 @@ const Reports: React.FC = () => {
     const headers = language === 'id' 
       ? ['Tanggal', 'Jenis', 'Kategori', 'Nominal', 'Deskripsi']
       : ['Date', 'Type', 'Category', 'Amount', 'Description'];
-      
+
     const rows = filtered.map((t) => [
       t.date,
       t.type === 'income' ? (language === 'id' ? 'Pemasukan' : 'Income') : (language === 'id' ? 'Pengeluaran' : 'Expense'),
@@ -274,10 +284,6 @@ const Reports: React.FC = () => {
   const filteredTransactions = getFilteredTransactions();
   const incomeCategories = summary.categoryBreakdown.filter((c) => c.type === 'income');
   const expenseCategories = summary.categoryBreakdown.filter((c) => c.type === 'expense');
-
-  const COLORS = theme === 'dark' 
-    ? ['#10B981', '#34D399', '#059669', '#6EE7B7', '#A7F3D0', '#22c55e', '#4ade80']
-    : ['#3B82F6', '#60A5FA', '#2563EB', '#93C5FD', '#BFDBFE', '#1d4fd8', '#3b82f6'];
 
   const getPeriodOptions = () => {
     const options: { value: string; label: string }[] = [];
@@ -323,42 +329,37 @@ const Reports: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-border/50">
+        {/* Header */}
+        <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
           <div>
             <TerminalPrompt 
               command={`reports --type=${reportTypeLabels[reportType]} --period=${selectedPeriod}`} 
-              className="mb-2"
+              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
             />
-            <h1 className="text-3xl font-bold tracking-tight">
-              <TerminalText 
-                text={t('nav.reports')} 
-                typing 
-                delay={100}
-                className={theme === 'dark' ? 'text-green-400' : 'text-blue-500'}
-              />
+            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('nav.reports')}
             </h1>
-            <p className="text-muted-foreground mt-1 font-mono text-sm">
+            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
               {language === 'id' ? 'Analisis dan export data keuangan' : 'Financial data analysis and export'}
             </p>
           </div>
-          
+
           <TerminalButton
             onClick={exportToCSV}
             disabled={filteredTransactions.length === 0}
             variant="secondary"
             glow={false}
+            className={isDark ? 'bg-[#1a1a1a] text-white border-[#333333] hover:bg-[#252525]' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Download className={`h-4 w-4 mr-2 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
             Export CSV
           </TerminalButton>
         </div>
 
-        {/* Crypto Chart Section - NEW */}
+        {/* Crypto Chart */}
         <TerminalCard 
           title="financial_analysis" 
           subtitle={language === 'id' ? 'tren_cashflow' : 'cashflow_trend'}
-          delay={150}
         >
           <CryptoChart 
             data={chartData}
@@ -372,15 +373,11 @@ const Reports: React.FC = () => {
         <TerminalCard 
           title="filter_config" 
           subtitle={language === 'id' ? 'konfigurasi_parameter' : 'parameter_config'} 
-          delay={100} 
           glow={false}
         >
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <label className={`
-                block text-xs font-mono uppercase tracking-wider mb-2
-                ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}
-              `}>
+              <label className={`block text-xs font-mono uppercase tracking-wider mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                 $ {language === 'id' ? 'jenis_laporan' : 'report_type'}
               </label>
               <div className="flex gap-2">
@@ -389,12 +386,14 @@ const Reports: React.FC = () => {
                     key={type}
                     onClick={() => setReportType(type)}
                     className={`
-                      px-4 py-2 rounded-lg font-mono text-sm transition-all duration-200
+                      px-4 py-2 rounded font-mono text-sm transition-all duration-200
                       ${reportType === type
-                        ? (theme === 'dark' 
-                          ? 'bg-green-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.5)]' 
-                          : 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]')
-                        : 'bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                        ? (isDark 
+                            ? 'bg-[#333333] text-white shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
+                            : 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]')
+                        : (isDark 
+                            ? 'bg-[#1a1a1a] text-[#a0a0a0] hover:text-white hover:bg-[#252525]'
+                            : 'bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200')
                       }
                     `}
                   >
@@ -405,26 +404,20 @@ const Reports: React.FC = () => {
             </div>
 
             <div className="flex-1">
-              <label className={`
-                block text-xs font-mono uppercase tracking-wider mb-2
-                ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}
-              `}>
+              <label className={`block text-xs font-mono uppercase tracking-wider mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                 $ {language === 'id' ? 'periode' : 'period'}
               </label>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className={`
-                  w-full px-4 py-2 rounded-lg font-mono text-sm bg-muted/50 border
-                  ${theme === 'dark' 
-                    ? 'border-green-500/30 focus:border-green-500 focus:ring-1 focus:ring-green-500' 
-                    : 'border-blue-500/30 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-                  }
-                  outline-none transition-all
-                `}
+                className={`w-full px-4 py-2 rounded font-mono text-sm outline-none transition-all ${
+                  isDark 
+                    ? 'bg-[#1a1a1a] border border-[#333333] text-white focus:border-[#ffa502]' 
+                    : 'bg-white border border-gray-300 text-gray-900 focus:border-blue-500'
+                }`}
               >
                 {getPeriodOptions().map((opt) => (
-                  <option key={opt.value} value={opt.value}>
+                  <option key={opt.value} value={opt.value} className={isDark ? 'bg-[#111111]' : 'bg-white'}>
                     {opt.label}
                   </option>
                 ))}
@@ -435,80 +428,52 @@ const Reports: React.FC = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <TerminalCard title="total_income" delay={200}>
+          <TerminalCard title="total_income">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <TerminalText 
-                  text={t('dashboard.totalIncome')} 
-                  prefix="$ "
-                  className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-                />
-                <p className="text-2xl font-bold font-mono text-green-500">
+                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                  {t('dashboard.totalIncome')}
+                </span>
+                <p className="text-2xl font-bold font-mono" style={{ color: colors.green }}>
                   {formatCurrency(summary.income)}
                 </p>
               </div>
-              <div className={`
-                p-3 rounded-lg 
-                ${theme === 'dark' 
-                  ? 'bg-green-500/10 text-green-400 border border-green-500/30' 
-                  : 'bg-green-500/10 text-green-600 border border-green-500/30'}
-              `}>
+              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`} style={{ color: colors.green }}>
                 <TrendingUp className="h-5 w-5" />
               </div>
             </div>
           </TerminalCard>
 
-          <TerminalCard title="total_expense" delay={300}>
+          <TerminalCard title="total_expense">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <TerminalText 
-                  text={t('dashboard.totalExpense')} 
-                  prefix="$ "
-                  className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-                />
-                <p className="text-2xl font-bold font-mono text-red-500">
+                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                  {t('dashboard.totalExpense')}
+                </span>
+                <p className="text-2xl font-bold font-mono" style={{ color: colors.red }}>
                   {formatCurrency(summary.expense)}
                 </p>
               </div>
-              <div className={`
-                p-3 rounded-lg 
-                ${theme === 'dark' 
-                  ? 'bg-red-500/10 text-red-400 border border-red-500/30' 
-                  : 'bg-red-500/10 text-red-600 border border-red-500/30'}
-              `}>
+              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`} style={{ color: colors.red }}>
                 <TrendingDown className="h-5 w-5" />
               </div>
             </div>
           </TerminalCard>
 
-          <TerminalCard title="balance_diff" delay={400}>
+          <TerminalCard title="balance_diff">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <TerminalText 
-                  text={language === 'id' ? 'Selisih' : 'Balance'} 
-                  prefix="$ "
-                  className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-                />
-                <p className={`text-2xl font-bold font-mono ${summary.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                  {language === 'id' ? 'Selisih' : 'Balance'}
+                </span>
+                <p className="text-2xl font-bold font-mono" style={{ color: summary.balance >= 0 ? colors.green : colors.red }}>
                   {formatCurrency(summary.balance)}
                 </p>
                 <TerminalBadge variant={summary.balance >= 0 ? 'success' : 'danger'}>
-                  {summary.balance >= 0 
-                    ? (language === 'id' ? 'Surplus' : 'Surplus') 
-                    : (language === 'id' ? 'Defisit' : 'Deficit')}
+                  {summary.balance >= 0 ? (language === 'id' ? 'Surplus' : 'Surplus') : (language === 'id' ? 'Defisit' : 'Deficit')}
                 </TerminalBadge>
               </div>
-              <div className={`
-                p-3 rounded-lg 
-                ${summary.balance >= 0
-                  ? (theme === 'dark' 
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/30' 
-                    : 'bg-green-500/10 text-green-600 border border-green-500/30')
-                  : (theme === 'dark' 
-                    ? 'bg-red-500/10 text-red-400 border border-red-500/30' 
-                    : 'bg-red-500/10 text-red-600 border border-red-500/30')
-                }
-              `}>
+              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`} style={{ color: summary.balance >= 0 ? colors.green : colors.red }}>
                 {summary.balance >= 0 ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownRight className="h-5 w-5" />}
               </div>
             </div>
@@ -521,9 +486,8 @@ const Reports: React.FC = () => {
             <TerminalCard 
               title="category_distribution" 
               subtitle={language === 'id' ? 'visualisasi_data' : 'data_visualization'}
-              delay={500}
             >
-              <div className="flex gap-1 p-1 rounded-lg bg-muted/50 border border-border mb-4">
+              <div className={`flex gap-1 p-1 rounded border mb-4 ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`}>
                 {(['expense', 'income'] as const).map((tab) => (
                   <button
                     key={tab}
@@ -533,144 +497,107 @@ const Reports: React.FC = () => {
                     }}
                     className={`
                       flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all
-                      ${tab === 'expense'
-                        ? (theme === 'dark' 
-                          ? 'bg-red-500/20 text-red-400' 
-                          : 'bg-red-500/20 text-red-600')
-                        : (theme === 'dark' 
-                          ? 'bg-green-500/20 text-green-400' 
-                          : 'bg-green-500/20 text-green-600')
+                      ${tab === 'expense' 
+                        ? (isDark ? 'bg-[#ff4757]/20 text-[#ff4757]' : 'bg-red-100 text-red-600')
+                        : (isDark ? 'bg-[#00d084]/20 text-[#00d084]' : 'bg-green-100 text-green-600')
                       }
                     `}
                   >
-                    {tab === 'expense' 
-                      ? (language === 'id' ? 'Pengeluaran' : 'Expense') 
-                      : (language === 'id' ? 'Pemasukan' : 'Income')}
+                    {tab === 'expense' ? (language === 'id' ? 'Pengeluaran' : 'Expense') : (language === 'id' ? 'Pemasukan' : 'Income')}
                   </button>
                 ))}
               </div>
 
-              <div className="space-y-6">
-                <div id="tab-expense">
-                  <h4 className={`
-                    text-xs font-mono uppercase tracking-wider mb-3
-                    ${theme === 'dark' ? 'text-red-400/70' : 'text-red-600/70'}
-                  `}>
-                    $ {language === 'id' ? 'pengeluaran --breakdown' : 'expense --breakdown'}
-                  </h4>
-                  {expenseCategories.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={expenseCategories}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={70}
-                          paddingAngle={5}
-                          dataKey="amount"
-                          nameKey="name"
-                        >
-                          {expenseCategories.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))', 
-                            border: `1px solid ${theme === 'dark' ? 'rgba(16,185,129,0.3)' : 'rgba(59,130,246,0.3)'}`, 
-                            borderRadius: '8px',
-                            fontFamily: 'JetBrains Mono',
-                          }} 
-                          formatter={(value: number) => formatCurrency(value)} 
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground font-mono text-sm">
-                      [NULL] {language === 'id' ? 'Tidak ada data pengeluaran' : 'No expense data'}
-                    </div>
-                  )}
-                </div>
+            <div className="space-y-6">
+  <div id="tab-expense">
+    <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#DC2626]/70' : 'text-blue-900/70'}`}>
+      $ {language === 'id' ? 'pengeluaran --breakdown' : 'expense --breakdown'}
+    </h4>
+    {expenseCategories.length > 0 ? (
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie data={expenseCategories} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="amount" nameKey="name">
+            {expenseCategories.map((_, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={isDark 
+                  ? ['#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#FECACA', '#FEE2E2'][index % 6] // Merah (dark)
+                  : ['#1E3A8A', '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD'][index % 6] // Biru (light)
+                } 
+              />
+            ))}
+          </Pie>
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: isDark ? '#111111' : '#ffffff', 
+              border: isDark ? '1px solid #333333' : '1px solid #e2e8f0', 
+              borderRadius: '8px',
+              fontFamily: 'JetBrains Mono',
+              color: isDark ? '#ffffff' : '#0f172a'
+            }} 
+            formatter={(value: number) => formatCurrency(value)} 
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    ) : (
+      <div className={`text-center py-8 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+        [NULL] {language === 'id' ? 'Tidak ada data pengeluaran' : 'No expense data'}
+      </div>
+    )}
+  </div>
 
-                <div id="tab-income">
-                  <h4 className={`
-                    text-xs font-mono uppercase tracking-wider mb-3
-                    ${theme === 'dark' ? 'text-green-400/70' : 'text-green-600/70'}
-                  `}>
-                    $ {language === 'id' ? 'pemasukan --breakdown' : 'income --breakdown'}
-                  </h4>
-                  {incomeCategories.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={incomeCategories}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={70}
-                          paddingAngle={5}
-                          dataKey="amount"
-                          nameKey="name"
-                        >
-                          {incomeCategories.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))', 
-                            border: `1px solid ${theme === 'dark' ? 'rgba(16,185,129,0.3)' : 'rgba(59,130,246,0.3)'}`, 
-                            borderRadius: '8px',
-                            fontFamily: 'JetBrains Mono',
-                          }} 
-                          formatter={(value: number) => formatCurrency(value)} 
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground font-mono text-sm">
-                      [NULL] {language === 'id' ? 'Tidak ada data pemasukan' : 'No income data'}
-                    </div>
-                  )}
-                </div>
-              </div>
+  <div id="tab-income">
+    <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#EAB308]/70' : 'text-yellow-600/70'}`}>
+      $ {language === 'id' ? 'pemasukan --breakdown' : 'income --breakdown'}
+    </h4>
+    {incomeCategories.length > 0 ? (
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie data={incomeCategories} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="amount" nameKey="name">
+            {incomeCategories.map((_, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={['#EAB308', '#F59E0B', '#D97706', '#B45309', '#92400E', '#78350F'][index % 6]} // Kuning (sama dark & light)
+              />
+            ))}
+          </Pie>
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: isDark ? '#111111' : '#ffffff', 
+              border: isDark ? '1px solid #333333' : '1px solid #e2e8f0', 
+              borderRadius: '8px',
+              fontFamily: 'JetBrains Mono',
+              color: isDark ? '#ffffff' : '#e1e9fa'
+            }} 
+            formatter={(value: number) => formatCurrency(value)} 
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    ) : (
+      <div className={`text-center py-8 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+        [NULL] {language === 'id' ? 'Tidak ada data pemasukan' : 'No income data'}
+      </div>
+    )}
+  </div>
+</div>
             </TerminalCard>
 
             <TerminalCard 
               title="category_detail" 
               subtitle={language === 'id' ? 'breakdown_berdasarkan_tipe' : 'breakdown_by_type'}
-              delay={600}
             >
-              <div className="flex gap-1 p-1 rounded-lg bg-muted/50 border border-border mb-4">
-                <button
-                  className={`
-                    flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all
-                    ${theme === 'dark' 
-                      ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
-                      : 'bg-red-500/20 text-red-600 hover:bg-red-500/30'}
-                  `}
-                >
+              <div className={`flex gap-1 p-1 rounded border mb-4 ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`}>
+                <button className={`flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all ${isDark ? 'bg-[#ff4757]/20 text-[#ff4757] hover:bg-[#ff4757]/30' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}>
                   {language === 'id' ? 'Pengeluaran' : 'Expense'}
                 </button>
-                <button
-                  className={`
-                    flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all
-                    ${theme === 'dark' 
-                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
-                      : 'bg-green-500/20 text-green-600 hover:bg-green-500/30'}
-                  `}
-                >
+                <button className={`flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all ${isDark ? 'bg-[#00d084]/20 text-[#00d084] hover:bg-[#00d084]/30' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}>
                   {language === 'id' ? 'Pemasukan' : 'Income'}
                 </button>
               </div>
 
               <div className="space-y-4 max-h-[400px] overflow-auto">
                 <div>
-                  <h4 className={`
-                    text-xs font-mono uppercase tracking-wider mb-2 sticky top-0 bg-card/80 backdrop-blur py-1
-                    ${theme === 'dark' ? 'text-red-400/70' : 'text-red-600/70'}
-                  `}>
+                  <h4 className={`text-xs font-mono uppercase tracking-wider mb-2 sticky top-0 py-1 ${isDark ? 'bg-[#111111]/80 text-[#ff4757]/70' : 'bg-white/80 text-red-500/70'}`}>
                     $ {language === 'id' ? 'list --type=expense' : 'list --type=expense'}
                   </h4>
                   <div className="space-y-2">
@@ -678,39 +605,27 @@ const Reports: React.FC = () => {
                       expenseCategories.map((cat, index) => (
                         <div
                           key={cat.name}
-                          className={`
-                            flex items-center justify-between p-3 rounded-lg border
-                            ${theme === 'dark' 
-                              ? 'bg-red-500/5 border-red-500/20 hover:border-red-500/40' 
-                              : 'bg-red-500/5 border-red-500/20 hover:border-red-500/40'}
-                            transition-colors
-                          `}
+                          className={`flex items-center justify-between p-3 rounded border transition-colors ${
+                            isDark 
+                              ? 'bg-[#ff4757]/5 border-[#ff4757]/20 hover:border-[#ff4757]/40' 
+                              : 'bg-red-50 border-red-200 hover:border-red-300'
+                          }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div
-                              className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]"
-                              style={{ backgroundColor: COLORS[index % COLORS.length], color: COLORS[index % COLORS.length] }}
-                            />
-                            <span className="font-mono text-sm">{cat.name}</span>
+                            <div className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: colors.chartColors[index % colors.chartColors.length], color: colors.chartColors[index % colors.chartColors.length] }} />
+                            <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{cat.name}</span>
                           </div>
-                          <span className="font-mono font-semibold text-red-500">
-                            -{formatCurrency(cat.amount)}
-                          </span>
+                          <span className="font-mono font-semibold" style={{ color: colors.red }}>-{formatCurrency(cat.amount)}</span>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-4 text-muted-foreground font-mono text-sm">
-                        [EMPTY] {language === 'id' ? 'Tidak ada data' : 'No data'}
-                      </div>
+                      <div className={`text-center py-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>[EMPTY] {language === 'id' ? 'Tidak ada data' : 'No data'}</div>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className={`
-                    text-xs font-mono uppercase tracking-wider mb-2 sticky top-0 bg-card/80 backdrop-blur py-1
-                    ${theme === 'dark' ? 'text-green-400/70' : 'text-green-600/70'}
-                  `}>
+                  <h4 className={`text-xs font-mono uppercase tracking-wider mb-2 sticky top-0 py-1 ${isDark ? 'bg-[#111111]/80 text-[#00d084]/70' : 'bg-white/80 text-green-500/70'}`}>
                     $ {language === 'id' ? 'list --type=income' : 'list --type=income'}
                   </h4>
                   <div className="space-y-2">
@@ -718,30 +633,21 @@ const Reports: React.FC = () => {
                       incomeCategories.map((cat, index) => (
                         <div
                           key={cat.name}
-                          className={`
-                            flex items-center justify-between p-3 rounded-lg border
-                            ${theme === 'dark' 
-                              ? 'bg-green-500/5 border-green-500/20 hover:border-green-500/40' 
-                              : 'bg-green-500/5 border-green-500/20 hover:border-green-500/40'}
-                            transition-colors
-                          `}
+                          className={`flex items-center justify-between p-3 rounded border transition-colors ${
+                            isDark 
+                              ? 'bg-[#00d084]/5 border-[#00d084]/20 hover:border-[#00d084]/40' 
+                              : 'bg-green-50 border-green-200 hover:border-green-300'
+                          }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div
-                              className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]"
-                              style={{ backgroundColor: COLORS[index % COLORS.length], color: COLORS[index % COLORS.length] }}
-                            />
-                            <span className="font-mono text-sm">{cat.name}</span>
+                            <div className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: colors.chartColors[index % colors.chartColors.length], color: colors.chartColors[index % colors.chartColors.length] }} />
+                            <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{cat.name}</span>
                           </div>
-                          <span className="font-mono font-semibold text-green-500">
-                            +{formatCurrency(cat.amount)}
-                          </span>
+                          <span className="font-mono font-semibold" style={{ color: colors.green }}>+{formatCurrency(cat.amount)}</span>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-4 text-muted-foreground font-mono text-sm">
-                        [EMPTY] {language === 'id' ? 'Tidak ada data' : 'No data'}
-                      </div>
+                      <div className={`text-center py-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>[EMPTY] {language === 'id' ? 'Tidak ada data' : 'No data'}</div>
                     )}
                   </div>
                 </div>
@@ -749,22 +655,14 @@ const Reports: React.FC = () => {
             </TerminalCard>
           </div>
         ) : (
-          <TerminalCard title="system_status" delay={500}>
+          <TerminalCard title="system_status">
             <div className="p-12 text-center">
-              <Calendar className={`
-                h-16 w-16 mx-auto mb-4 
-                ${theme === 'dark' ? 'text-green-500/30' : 'text-blue-500/30'}
-              `} />
-              <h3 className="text-lg font-mono font-medium mb-2">[404] {language === 'id' ? 'Data Tidak Ditemukan' : 'Data Not Found'}</h3>
-              <p className="text-muted-foreground font-mono text-sm">
-                {language === 'id' 
-                  ? 'Tidak ada transaksi untuk periode yang dipilih' 
-                  : 'No transactions for selected period'}
+              <Calendar className={`h-16 w-16 mx-auto mb-4 ${isDark ? 'text-[#ffa502]/30' : 'text-blue-500/30'}`} />
+              <h3 className={`text-lg font-mono font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>[404] {language === 'id' ? 'Data Tidak Ditemukan' : 'Data Not Found'}</h3>
+              <p className={`font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+                {language === 'id' ? 'Tidak ada transaksi untuk periode yang dipilih' : 'No transactions for selected period'}
               </p>
-              <TerminalPrompt 
-                command="transactions --add --help" 
-                className="mt-4 justify-center"
-              />
+              <TerminalPrompt command="transactions --add --help" className={`mt-4 justify-center ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`} />
             </div>
           </TerminalCard>
         )}

@@ -1,4 +1,3 @@
-// src/pages/Calendar.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, TrendingUp, TrendingDown, Calendar as CalendarIcon } from 'lucide-react';
@@ -7,13 +6,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getTransactions } from '@/lib/supabase';
 import type { Transaction } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   TerminalCard,
   TerminalButton,
   TerminalPrompt,
-  TerminalText,
   TerminalBadge,
 } from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
@@ -32,6 +28,8 @@ const Calendar: React.FC = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const { language, formatCurrency, formatDate: formatDateLang } = useLanguage();
+  const isDark = theme === 'dark';
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -73,7 +71,6 @@ const Calendar: React.FC = () => {
 
     const days: DayData[] = [];
 
-    // Previous month days
     const prevMonth = new Date(year, month, 0);
     for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
       const day = prevMonth.getDate() - i;
@@ -87,7 +84,6 @@ const Calendar: React.FC = () => {
       });
     }
 
-    // Current month days
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = new Date(year, month, day).toISOString().split('T')[0];
       const dayTransactions = transactions.filter((t) => t.date === dateStr);
@@ -104,7 +100,6 @@ const Calendar: React.FC = () => {
       });
     }
 
-    // Next month days
     const remainingDays = 42 - days.length;
     for (let day = 1; day <= remainingDays; day++) {
       days.push({
@@ -137,16 +132,10 @@ const Calendar: React.FC = () => {
     ? ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
     : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-  const selectedDayData = selectedDate
-    ? calendarDays.find((d) => d.date === selectedDate)
-    : null;
+  const selectedDayData = selectedDate ? calendarDays.find((d) => d.date === selectedDate) : null;
 
-  const monthTotalIncome = transactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-  const monthTotalExpense = transactions
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const monthTotalIncome = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const monthTotalExpense = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
 
   const monthNames = language === 'id'
     ? ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
@@ -155,26 +144,21 @@ const Calendar: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header - Terminal Style */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-border/50">
+        {/* Header */}
+        <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
           <div>
             <TerminalPrompt 
               command={`calendar --month=${currentDate.getMonth() + 1} --year=${currentDate.getFullYear()}`} 
-              className="mb-2"
+              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
             />
-            <h1 className="text-3xl font-bold tracking-tight">
-              <TerminalText 
-                text={language === 'id' ? 'Kalender' : 'Calendar'} 
-                typing 
-                delay={100}
-                className={theme === 'dark' ? 'text-green-400' : 'text-blue-500'}
-              />
+            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {language === 'id' ? 'Kalender' : 'Calendar'}
             </h1>
-            <p className="text-muted-foreground mt-1 font-mono text-sm">
+            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
               {language === 'id' ? 'Lihat transaksi berdasarkan tanggal' : 'View transactions by date'}
             </p>
           </div>
-          
+
           <TerminalButton 
             onClick={() => navigate('/transactions/new')}
             glow
@@ -184,82 +168,54 @@ const Calendar: React.FC = () => {
           </TerminalButton>
         </div>
 
-        {/* Month Summary - Terminal Style */}
+        {/* Month Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <TerminalCard title="month_income" delay={100}>
+          <TerminalCard title="month_income">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <TerminalText 
-                  text={language === 'id' ? 'Total Pemasukan' : 'Total Income'} 
-                  prefix="$ "
-                  className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-                />
-                <p className="text-2xl font-bold font-mono text-green-500">
+                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                  {language === 'id' ? 'Total Pemasukan' : 'Total Income'}
+                </span>
+                <p className={`text-2xl font-bold font-mono ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>
                   {formatCurrency(monthTotalIncome)}
                 </p>
               </div>
-              <div className={`
-                p-3 rounded-lg 
-                ${theme === 'dark' 
-                  ? 'bg-green-500/10 text-green-400 border border-green-500/30' 
-                  : 'bg-green-500/10 text-green-600 border border-green-500/30'}
-              `}>
+              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#00d084]' : 'bg-green-50 border-green-200 text-green-600'}`}>
                 <TrendingUp className="h-5 w-5" />
               </div>
             </div>
           </TerminalCard>
 
-          <TerminalCard title="month_expense" delay={200}>
+          <TerminalCard title="month_expense">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <TerminalText 
-                  text={language === 'id' ? 'Total Pengeluaran' : 'Total Expense'} 
-                  prefix="$ "
-                  className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-                />
-                <p className="text-2xl font-bold font-mono text-red-500">
+                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                  {language === 'id' ? 'Total Pengeluaran' : 'Total Expense'}
+                </span>
+                <p className={`text-2xl font-bold font-mono ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>
                   {formatCurrency(monthTotalExpense)}
                 </p>
               </div>
-              <div className={`
-                p-3 rounded-lg 
-                ${theme === 'dark' 
-                  ? 'bg-red-500/10 text-red-400 border border-red-500/30' 
-                  : 'bg-red-500/10 text-red-600 border border-red-500/30'}
-              `}>
+              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#ff4757]' : 'bg-red-50 border-red-200 text-red-600'}`}>
                 <TrendingDown className="h-5 w-5" />
               </div>
             </div>
           </TerminalCard>
 
-          <TerminalCard title="month_balance" delay={300}>
+          <TerminalCard title="month_balance">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <TerminalText 
-                  text={language === 'id' ? 'Selisih' : 'Balance'} 
-                  prefix="$ "
-                  className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-                />
-                <p className={`text-2xl font-bold font-mono ${monthTotalIncome - monthTotalExpense >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                  {language === 'id' ? 'Selisih' : 'Balance'}
+                </span>
+                <p className={`text-2xl font-bold font-mono ${monthTotalIncome - monthTotalExpense >= 0 ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
                   {formatCurrency(monthTotalIncome - monthTotalExpense)}
                 </p>
                 <TerminalBadge variant={monthTotalIncome - monthTotalExpense >= 0 ? 'success' : 'danger'}>
-                  {monthTotalIncome - monthTotalExpense >= 0 
-                    ? (language === 'id' ? 'Surplus' : 'Surplus')
-                    : (language === 'id' ? 'Defisit' : 'Deficit')}
+                  {monthTotalIncome - monthTotalExpense >= 0 ? (language === 'id' ? 'Surplus' : 'Surplus') : (language === 'id' ? 'Defisit' : 'Deficit')}
                 </TerminalBadge>
               </div>
-              <div className={`
-                p-3 rounded-lg 
-                ${monthTotalIncome - monthTotalExpense >= 0
-                  ? (theme === 'dark' 
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/30' 
-                    : 'bg-green-500/10 text-green-600 border border-green-500/30')
-                  : (theme === 'dark' 
-                    ? 'bg-red-500/10 text-red-400 border border-red-500/30' 
-                    : 'bg-red-500/10 text-red-600 border border-red-500/30')
-                }
-              `}>
+              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'} ${monthTotalIncome - monthTotalExpense >= 0 ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
                 {monthTotalIncome - monthTotalExpense >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
               </div>
             </div>
@@ -267,34 +223,23 @@ const Calendar: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Calendar - Terminal Style */}
+          {/* Calendar */}
           <TerminalCard 
             title="calendar_grid" 
             subtitle={`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
-            delay={400}
             className="lg:col-span-2"
           >
             <div className="space-y-4">
               {/* Navigation */}
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold font-mono">
+                <h3 className={`text-xl font-bold font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </h3>
                 <div className="flex gap-2">
-                  <TerminalButton 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigateMonth('prev')}
-                    glow={false}
-                  >
+                  <TerminalButton variant="ghost" size="sm" onClick={() => navigateMonth('prev')} glow={false} className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}>
                     <ChevronLeft className="h-4 w-4" />
                   </TerminalButton>
-                  <TerminalButton 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigateMonth('next')}
-                    glow={false}
-                  >
+                  <TerminalButton variant="ghost" size="sm" onClick={() => navigateMonth('next')} glow={false} className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}>
                     <ChevronRight className="h-4 w-4" />
                   </TerminalButton>
                 </div>
@@ -303,10 +248,7 @@ const Calendar: React.FC = () => {
               {/* Week Days Header */}
               <div className="grid grid-cols-7 gap-1">
                 {weekDays.map((day) => (
-                  <div key={day} className={`
-                    text-center text-xs font-mono py-2 uppercase tracking-wider
-                    ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}
-                  `}>
+                  <div key={day} className={`text-center text-xs font-mono py-2 uppercase tracking-wider ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                     {day}
                   </div>
                 ))}
@@ -319,39 +261,39 @@ const Calendar: React.FC = () => {
                     key={index}
                     onClick={() => setSelectedDate(day.date)}
                     className={`
-                      aspect-square p-2 rounded-lg border transition-all font-mono text-sm
+                      aspect-square p-2 rounded border transition-all font-mono text-sm
                       ${day.isCurrentMonth
-                        ? (theme === 'dark' 
-                          ? 'bg-slate-900/50 hover:bg-green-500/10 border-green-500/20' 
-                          : 'bg-white hover:bg-blue-500/10 border-blue-500/20')
-                        : 'bg-muted/30 text-muted-foreground border-transparent'
+                        ? (isDark 
+                            ? 'bg-[#0a0a0a] hover:bg-[#1a1a1a] border-[#252525] text-white' 
+                            : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-900')
+                        : (isDark 
+                            ? 'bg-[#0f0f0f] text-[#555555] border-transparent' 
+                            : 'bg-gray-50 text-gray-400 border-transparent')
                       }
                       ${selectedDate === day.date 
-                        ? (theme === 'dark' 
-                          ? 'ring-2 ring-green-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
-                          : 'ring-2 ring-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]')
+                        ? (isDark 
+                            ? 'ring-2 ring-[#ffa502] shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
+                            : 'ring-2 ring-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]')
                         : ''
                       }
                       ${day.date === new Date().toISOString().split('T')[0]
-                        ? (theme === 'dark' 
-                          ? 'border-green-500/50 bg-green-500/5' 
-                          : 'border-blue-500/50 bg-blue-500/5')
+                        ? (isDark 
+                            ? 'border-[#ffa502]/50 bg-[#ffa502]/5' 
+                            : 'border-blue-500/50 bg-blue-50')
                         : ''
                       }
                     `}
                   >
                     <div className="h-full flex flex-col justify-between">
-                      <span className={`${!day.isCurrentMonth && 'opacity-40'}`}>
-                        {day.day}
-                      </span>
+                      <span className={`${!day.isCurrentMonth && 'opacity-40'}`}>{day.day}</span>
                       <div className="flex flex-col gap-0.5">
                         {day.income > 0 && (
-                          <span className="text-[9px] text-green-500 font-medium truncate">
+                          <span className={`text-[9px] font-medium truncate ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>
                             +{formatCurrency(day.income).replace(/[^0-9.,]/g, '').substring(0, 6)}
                           </span>
                         )}
                         {day.expense > 0 && (
-                          <span className="text-[9px] text-red-500 font-medium truncate">
+                          <span className={`text-[9px] font-medium truncate ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>
                             -{formatCurrency(day.expense).replace(/[^0-9.,]/g, '').substring(0, 6)}
                           </span>
                         )}
@@ -362,98 +304,74 @@ const Calendar: React.FC = () => {
               </div>
 
               {/* Legend */}
-              <div className="flex items-center gap-4 pt-4 border-t border-border text-xs font-mono">
+              <div className={`flex items-center gap-4 pt-4 border-t text-xs font-mono ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-muted-foreground">{language === 'id' ? 'Pemasukan' : 'Income'}</span>
+                  <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-[#00d084]' : 'bg-green-500'}`} />
+                  <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pemasukan' : 'Income'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
-                  <span className="text-muted-foreground">{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
+                  <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-[#ff4757]' : 'bg-red-500'}`} />
+                  <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`
-                    w-2 h-2 rounded-full border
-                    ${theme === 'dark' ? 'border-green-500' : 'border-blue-500'}
-                  `} />
-                  <span className="text-muted-foreground">{language === 'id' ? 'Hari ini' : 'Today'}</span>
+                  <div className={`w-2 h-2 rounded-full border ${isDark ? 'border-[#ffa502]' : 'border-blue-500'}`} />
+                  <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Hari ini' : 'Today'}</span>
                 </div>
               </div>
             </div>
           </TerminalCard>
 
-          {/* Selected Day Transactions - Terminal Style */}
+          {/* Selected Day Transactions */}
           <TerminalCard 
             title="selected_date" 
             subtitle={selectedDayData ? formatDateLang(selectedDayData.date) : (language === 'id' ? 'Pilih tanggal' : 'Select date')}
-            delay={500}
           >
             <div className="min-h-[300px]">
               {!selectedDayData ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <CalendarIcon className={`
-                    h-12 w-12 mx-auto mb-3 opacity-30
-                    ${theme === 'dark' ? 'text-green-500' : 'text-blue-500'}
-                  `} />
-                  <p className="font-mono text-sm">{language === 'id' ? 'Klik tanggal pada kalender' : 'Click a date on the calendar'}</p>
-                  <p className="font-mono text-xs opacity-70">{language === 'id' ? 'untuk melihat transaksi' : 'to view transactions'}</p>
+                <div className="text-center py-12">
+                  <CalendarIcon className={`h-12 w-12 mx-auto mb-3 opacity-30 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
+                  <p className={`font-mono text-sm mb-1 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>{language === 'id' ? 'Klik tanggal pada kalender' : 'Click a date on the calendar'}</p>
+                  <p className={`font-mono text-xs opacity-70 ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{language === 'id' ? 'untuk melihat transaksi' : 'to view transactions'}</p>
                 </div>
               ) : selectedDayData.transactions.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p className="font-mono text-sm mb-3">[EMPTY] {language === 'id' ? 'Tidak ada transaksi' : 'No transactions'}</p>
-                  <TerminalButton
-                    size="sm"
-                    onClick={() => navigate('/transactions/new')}
-                    glow={false}
-                  >
+                <div className="text-center py-12">
+                  <p className={`font-mono text-sm mb-3 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>[EMPTY] {language === 'id' ? 'Tidak ada transaksi' : 'No transactions'}</p>
+                  <TerminalButton size="sm" onClick={() => navigate('/transactions/new')} glow={false} className={isDark ? 'text-[#ffa502]' : 'text-blue-500'}>
                     <Plus className="h-3 w-3 mr-1" />
                     {language === 'id' ? 'Tambah' : 'Add'}
                   </TerminalButton>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {selectedDayData.transactions.map((transaction, idx) => (
+                  {selectedDayData.transactions.map((transaction) => (
                     <div
                       key={transaction.id}
                       className={`
-                        p-3 rounded-lg border cursor-pointer transition-all
+                        p-3 rounded border cursor-pointer transition-all
                         ${transaction.type === 'income'
-                          ? (theme === 'dark' 
-                            ? 'bg-green-500/5 border-green-500/20 hover:border-green-500/40' 
-                            : 'bg-green-500/5 border-green-500/20 hover:border-green-500/40')
-                          : (theme === 'dark' 
-                            ? 'bg-red-500/5 border-red-500/20 hover:border-red-500/40' 
-                            : 'bg-red-500/5 border-red-500/20 hover:border-red-500/40')
+                          ? (isDark 
+                              ? 'bg-[#00d084]/5 border-[#00d084]/20 hover:border-[#00d084]/40' 
+                              : 'bg-green-50 border-green-200 hover:border-green-300')
+                          : (isDark 
+                              ? 'bg-[#ff4757]/5 border-[#ff4757]/20 hover:border-[#ff4757]/40' 
+                              : 'bg-red-50 border-red-200 hover:border-red-300')
                         }
                       `}
                       onClick={() => navigate(`/transactions/edit/${transaction.id}`)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className={`
-                            p-1.5 rounded
-                            ${transaction.type === 'income'
-                              ? 'bg-green-500/20 text-green-500'
-                              : 'bg-red-500/20 text-red-500'
-                            }
-                          `}>
-                            {transaction.type === 'income' ? (
-                              <TrendingUp className="h-3 w-3" />
-                            ) : (
-                              <TrendingDown className="h-3 w-3" />
-                            )}
+                          <div className={`p-1.5 rounded ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/20 text-[#00d084]' : 'bg-green-100 text-green-600') : (isDark ? 'bg-[#ff4757]/20 text-[#ff4757]' : 'bg-red-100 text-red-600')}`}>
+                            {transaction.type === 'income' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                           </div>
-                          <span className="font-medium text-sm font-mono">{transaction.category}</span>
+                          <span className={`font-medium text-sm font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</span>
                         </div>
-                        <span className={`font-semibold text-sm font-mono ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                          {transaction.type === 'income' ? '+' : '-'}
-                          {formatCurrency(transaction.amount)}
+                        <span className={`font-semibold text-sm font-mono ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
+                          {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                         </span>
                       </div>
                       {transaction.description && (
-                        <p className="text-xs text-muted-foreground mt-1 ml-7 font-mono opacity-70">
-                          {transaction.description}
-                        </p>
+                        <p className={`text-xs mt-1 ml-7 font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{transaction.description}</p>
                       )}
                     </div>
                   ))}
@@ -461,17 +379,17 @@ const Calendar: React.FC = () => {
               )}
 
               {selectedDayData && selectedDayData.transactions.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-border space-y-2">
+                <div className={`mt-4 pt-4 border-t space-y-2 ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
                   {selectedDayData.income > 0 && (
                     <div className="flex justify-between text-sm font-mono">
-                      <span className="text-muted-foreground">{language === 'id' ? 'Pemasukan' : 'Income'}</span>
-                      <span className="text-green-500 font-medium">+{formatCurrency(selectedDayData.income)}</span>
+                      <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pemasukan' : 'Income'}</span>
+                      <span className={`font-medium ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>+{formatCurrency(selectedDayData.income)}</span>
                     </div>
                   )}
                   {selectedDayData.expense > 0 && (
                     <div className="flex justify-between text-sm font-mono">
-                      <span className="text-muted-foreground">{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
-                      <span className="text-red-500 font-medium">-{formatCurrency(selectedDayData.expense)}</span>
+                      <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
+                      <span className={`font-medium ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>-{formatCurrency(selectedDayData.expense)}</span>
                     </div>
                   )}
                 </div>

@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -8,49 +7,33 @@ import {
   Clock,
   PiggyBank,
   Flame,
-  Target,
-  ChevronUp,
-  ChevronDown,
-  BarChart3,
-  PieChart,
   ArrowUpRight,
   ArrowDownRight,
   Plus,
-  Activity,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getTransactions } from '@/lib/supabase';
 import type { Transaction } from '@/types';
-import { 
-  formatCompactNumber,
-} from '@/utils/formatters';
+import { formatCompactNumber } from '@/utils/formatters';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   TerminalCard, 
   TerminalText, 
   TerminalPrompt,
-  TerminalStat,
   TerminalBadge,
   TerminalButton,
 } from '@/components/ui/TerminalCard';
 import { CryptoChart } from '@/components/ui/CryptoChart';
 import Layout from '@/components/layout/Layout';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
   PieChart as RePieChart,
   Pie,
   Cell,
+  Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
 
 type TimeRange = '7days' | '30days' | 'year';
@@ -79,6 +62,8 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { t, language, formatCurrency, formatDate } = useLanguage();
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<TimeRange>('7days');
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
@@ -88,6 +73,17 @@ const Dashboard: React.FC = () => {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [topExpenses, setTopExpenses] = useState<{category: string; amount: number}[]>([]);
+
+  // Colors
+  const colors = {
+    green: isDark ? '#00d084' : '#22c55e',
+    red: isDark ? '#ff4757' : '#ef4444',
+    orange: isDark ? '#ffa502' : '#3b82f6',
+    blue: isDark ? '#3742fa' : '#6366f1',
+    chartColors: isDark 
+      ? ['#00d084', '#ffa502', '#3742fa', '#ff6b6b', '#4ecdc4']
+      : ['#22c55e', '#3b82f6', '#6366f1', '#f59e0b', '#ec4899'],
+  };
 
   const netProfit = totalIncome - totalExpense;
   const savingRatio = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
@@ -104,7 +100,7 @@ const Dashboard: React.FC = () => {
 
     try {
       const { data: allTransactions } = await getTransactions(user.id);
-      
+
       if (!allTransactions) return;
 
       let balance = 0;
@@ -118,7 +114,7 @@ const Dashboard: React.FC = () => {
       const filteredTransactions = allTransactions.filter((t) => {
         const tDate = new Date(t.date);
         const diffDays = Math.floor((now.getTime() - tDate.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         if (timeRange === '7days') return diffDays <= 7;
         if (timeRange === '30days') return diffDays <= 30;
         if (timeRange === 'year') return diffDays <= 365;
@@ -152,13 +148,7 @@ const Dashboard: React.FC = () => {
         .map(([name, value], index) => ({
           name,
           value,
-          color: [
-            theme === 'dark' ? '#10B981' : '#3B82F6',
-            theme === 'dark' ? '#EF4444' : '#EF4444',
-            theme === 'dark' ? '#F59E0B' : '#F59E0B',
-            theme === 'dark' ? '#8B5CF6' : '#8B5CF6',
-            theme === 'dark' ? '#EC4899' : '#EC4899',
-          ][index % 5],
+          color: colors.chartColors[index % colors.chartColors.length],
         }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 5);
@@ -186,18 +176,17 @@ const Dashboard: React.FC = () => {
   ): ChartData[] => {
     const data: ChartData[] = [];
     const now = new Date();
-    
-    // Calculate starting balance from transactions before the range
+
     let runningBalance = 0;
     allTransactions.forEach((t) => {
       const tDate = new Date(t.date);
       const diffDays = Math.floor((now.getTime() - tDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+
       let isBeforeRange = false;
       if (range === '7days') isBeforeRange = diffDays > 7;
       else if (range === '30days') isBeforeRange = diffDays > 30;
       else if (range === 'year') isBeforeRange = diffDays > 365;
-      
+
       if (isBeforeRange) {
         if (t.type === 'income') runningBalance += t.amount;
         else runningBalance -= t.amount;
@@ -228,7 +217,7 @@ const Dashboard: React.FC = () => {
         endDate.setDate(endDate.getDate() - (i * 7));
         const startDate = new Date(endDate);
         startDate.setDate(startDate.getDate() - 6);
-        
+
         data.push({
           date: startDate.toISOString().split('T')[0],
           label: language === 'id' ? `Minggu ${5-i}` : `Week ${5-i}`,
@@ -260,10 +249,9 @@ const Dashboard: React.FC = () => {
       }
     }
 
-    // Process transactions
     transactions.forEach((t) => {
       const tDate = new Date(t.date);
-      
+
       if (range === '7days') {
         const dayData = data.find(d => d.date === t.date);
         if (dayData) {
@@ -291,14 +279,11 @@ const Dashboard: React.FC = () => {
       }
     });
 
-    // Calculate cumulative, high, low, open, close
     let cumulative = runningBalance;
     data.forEach((d, index) => {
       cumulative += d.net;
       d.cumulative = cumulative;
       d.close = cumulative;
-      
-      // Calculate high and low based on the day's movement
       const dayStart = index === 0 ? runningBalance : data[index - 1].cumulative;
       d.open = dayStart;
       d.high = Math.max(dayStart, cumulative, dayStart + d.income);
@@ -318,15 +303,10 @@ const Dashboard: React.FC = () => {
     }, []);
 
     return (
-      <div className={`
-        flex items-center gap-2 text-xs font-mono 
-        ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}
-        bg-muted/30 px-3 py-1.5 rounded border
-        ${theme === 'dark' ? 'border-green-500/20' : 'border-blue-500/20'}
-      `}>
-        <Clock className="h-3 w-3" />
-        <span>{time.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-        <span className="text-muted-foreground">|</span>
+      <div className={`flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded border ${isDark ? 'text-[#a0a0a0] bg-[#1a1a1a] border-[#333333]' : 'text-gray-500 bg-gray-100 border-gray-200'}`}>
+        <Clock className={`h-3 w-3 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
+        <span className={isDark ? 'text-white' : 'text-gray-900'}>{time.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+        <span className={isDark ? 'text-[#555555]' : 'text-gray-400'}>|</span>
         <span>{time.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
       </div>
     );
@@ -334,7 +314,7 @@ const Dashboard: React.FC = () => {
 
   // Time Range Selector
   const TimeRangeSelector: React.FC = () => (
-    <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/50 border border-border">
+    <div className={`flex items-center gap-1 p-1 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`}>
       {(['7days', '30days', 'year'] as TimeRange[]).map((range) => (
         <button
           key={range}
@@ -342,10 +322,12 @@ const Dashboard: React.FC = () => {
           className={`
             px-3 py-1.5 rounded text-xs font-mono transition-all duration-200
             ${timeRange === range 
-              ? (theme === 'dark' 
-                ? 'bg-green-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.5)]' 
-                : 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]')
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              ? (isDark 
+                  ? 'bg-[#333333] text-white shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
+                  : 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]')
+              : (isDark 
+                  ? 'text-[#a0a0a0] hover:text-white hover:bg-[#252525]'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200')
             }
           `}
         >
@@ -383,7 +365,6 @@ const Dashboard: React.FC = () => {
     icon: React.ElementType;
     trend?: string;
     trendUp?: boolean;
-    delay?: number;
   }> = ({
     title,
     value,
@@ -391,44 +372,35 @@ const Dashboard: React.FC = () => {
     icon: Icon,
     trend,
     trendUp,
-    delay = 0,
   }) => (
     <TerminalCard 
       title={title.toLowerCase().replace(/\s/g, '_')} 
-      delay={delay}
       className="h-full"
     >
       <div className="flex items-start justify-between">
         <div className="space-y-2 flex-1">
           <div className="flex items-center gap-2">
-            <TerminalText 
-              text={title} 
-              prefix="$ " 
-              className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-            />
+            <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+              {title}
+            </span>
             {trend && !loading && (
-              <TerminalBadge variant={trendUp ? 'success' : 'danger'}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${trendUp ? (isDark ? 'text-[#00d084] bg-[#00d084]/10' : 'text-green-600 bg-green-100') : (isDark ? 'text-[#ff4757] bg-[#ff4757]/10' : 'text-red-600 bg-red-100')}`}>
                 {trendUp ? '▲' : '▼'} {trend}
-              </TerminalBadge>
+              </span>
             )}
           </div>
           {loading ? (
-            <Skeleton className="h-8 w-32" />
+            <Skeleton className={`h-8 w-32 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
           ) : (
-            <p className="text-2xl font-bold font-mono tracking-tight text-foreground">
+            <p className={`text-2xl font-bold font-mono tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {value}
             </p>
           )}
           {subtitle && !loading && (
-            <p className="text-xs text-muted-foreground font-mono">{subtitle}</p>
+            <p className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{subtitle}</p>
           )}
         </div>
-        <div className={`
-          p-3 rounded-lg 
-          ${theme === 'dark' 
-            ? 'bg-green-500/10 text-green-400 border border-green-500/30' 
-            : 'bg-blue-500/10 text-blue-500 border border-blue-500/30'}
-        `}>
+        <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#ffa502]' : 'bg-gray-100 border-gray-200 text-blue-500'}`}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -438,26 +410,21 @@ const Dashboard: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-border/50">
+        {/* Header */}
+        <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
           <div>
             <TerminalPrompt 
               command={t('terminal.dashboard')} 
-              className="mb-2"
+              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
             />
-            <h1 className="text-3xl font-bold tracking-tight">
-              <TerminalText 
-                text={t('dashboard.title')} 
-                typing 
-                delay={100}
-                className={theme === 'dark' ? 'text-green-400' : 'text-blue-500'}
-              />
+            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('dashboard.title')}
             </h1>
-            <p className="text-muted-foreground mt-1 font-mono text-sm">
+            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
               {t('dashboard.subtitle')}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3 flex-wrap">
             <DigitalClock />
             <TerminalButton 
@@ -474,11 +441,8 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <TimeRangeSelector />
           <div className="flex items-center gap-2">
-            <div className={`
-              w-2 h-2 rounded-full animate-pulse
-              ${theme === 'dark' ? 'bg-green-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]'}
-            `} />
-            <span className="text-xs text-muted-foreground font-mono">
+            <div className={`w-2 h-2 rounded-full animate-pulse ${isDark ? 'bg-[#00d084] shadow-[0_0_8px_rgba(0,208,132,0.8)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]'}`} />
+            <span className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
               {t('footer.systemOnline')} | {t('footer.version')}
             </span>
           </div>
@@ -491,7 +455,6 @@ const Dashboard: React.FC = () => {
             value={formatCurrency(totalBalance)}
             subtitle={t('dashboard.allPeriod')}
             icon={Wallet}
-            delay={0}
           />
           <StatCard
             title={t('dashboard.totalIncome')}
@@ -500,7 +463,6 @@ const Dashboard: React.FC = () => {
             icon={TrendingUp}
             trend="+12.5%"
             trendUp={true}
-            delay={100}
           />
           <StatCard
             title={t('dashboard.totalExpense')}
@@ -509,60 +471,49 @@ const Dashboard: React.FC = () => {
             icon={TrendingDown}
             trend="+5.2%"
             trendUp={false}
-            delay={200}
           />
           <StatCard
             title={t('dashboard.netProfit')}
             value={formatCurrency(Math.abs(netProfit))}
             subtitle={netProfit >= 0 ? t('dashboard.profit') : t('dashboard.loss')}
             icon={netProfit >= 0 ? ArrowUpRight : ArrowDownRight}
-            delay={300}
           />
           <StatCard
             title={t('dashboard.burnRate')}
             value={formatCurrency(burnRate * 30)}
             subtitle={t('dashboard.estMonthly')}
             icon={Flame}
-            delay={400}
           />
           <TerminalCard 
             title="savings_ratio" 
-            delay={500}
             className="h-full"
           >
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <TerminalText 
-                  text={t('dashboard.savingsRatio')} 
-                  prefix="$ "
-                  className={`text-xs uppercase tracking-wider ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}`}
-                />
+                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                  {t('dashboard.savingsRatio')}
+                </span>
                 {loading ? (
-                  <Skeleton className="h-8 w-32" />
+                  <Skeleton className={`h-8 w-32 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
                 ) : (
                   <>
-                    <p className="text-2xl font-bold font-mono">{savingRatio.toFixed(1)}%</p>
+                    <p className={`text-2xl font-bold font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>{savingRatio.toFixed(1)}%</p>
                     <SavingRatioBadge ratio={savingRatio} />
                   </>
                 )}
               </div>
-              <div className={`
-                p-3 rounded-lg 
-                ${theme === 'dark' 
-                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30' 
-                  : 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/30'}
-              `}>
+              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#3742fa]' : 'bg-gray-100 border-gray-200 text-indigo-500'}`}>
                 <PiggyBank className="h-5 w-5" />
               </div>
             </div>
             <Progress 
               value={Math.max(0, Math.min(100, savingRatio))} 
-              className="mt-4 h-2"
+              className={`mt-4 h-2 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`}
             />
           </TerminalCard>
         </div>
 
-        {/* Charts Section - Crypto Style */}
+        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <CryptoChart 
@@ -576,42 +527,39 @@ const Dashboard: React.FC = () => {
           <TerminalCard 
             title="top_categories" 
             subtitle={t('dashboard.expenseDistribution')}
-            delay={700}
           >
             {loading ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className={`h-64 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
             ) : categoryData.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-muted-foreground font-mono">
+              <div className={`h-64 flex items-center justify-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
                 {t('status.no_data')}
               </div>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={200}>
-                  <RePieChart>
-                    <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: `1px solid ${theme === 'dark' ? 'rgba(16,185,129,0.3)' : 'rgba(59,130,246,0.3)'}`, 
-                        borderRadius: '8px',
-                        fontFamily: 'JetBrains Mono',
-                      }} 
-                      formatter={(value: number) => formatCurrency(value)} 
-                    />
-                  </RePieChart>
+               <RePieChart>
+  <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
+    {categoryData.map((_, index) => (
+      <Cell 
+        key={`cell-${index}`} 
+        fill={isDark 
+          ? ['#EAB308', '#F59E0B', '#D97706', '#B45309'][index % 4] // Kuning gradasi (dark)
+          : ['#EAB308', '#F59E0B', '#D97706', '#B45309'][index % 4] // Kuning gradasi (light)
+        } 
+      />
+    ))}
+  </Pie>
+  ...
+</RePieChart>
                 </ResponsiveContainer>
                 <div className="space-y-2 mt-4">
                   {categoryData.slice(0, 4).map((cat) => (
                     <div key={cat.name} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                        <span className="text-muted-foreground truncate max-w-[100px] font-mono text-xs">{cat.name}</span>
+                        <span className={`truncate max-w-[100px] font-mono text-xs ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>{cat.name}</span>
                       </div>
-                      <span className="font-mono font-medium text-xs">{formatCompactNumber(cat.value)}</span>
+                      <span className={`font-mono font-medium text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatCompactNumber(cat.value)}</span>
                     </div>
                   ))}
                 </div>
@@ -625,36 +573,30 @@ const Dashboard: React.FC = () => {
           <TerminalCard 
             title="top_expenses" 
             subtitle={t('dashboard.highestExpenseCategories')}
-            delay={800}
           >
             {loading ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+                  <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
                 ))}
               </div>
             ) : topExpenses.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground font-mono">
+              <div className={`text-center py-8 font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
                 {t('status.no_data')}
               </div>
             ) : (
               <div className="space-y-3">
                 {topExpenses.map((expense, index) => (
                   <div key={expense.category} className="flex items-center gap-4">
-                    <div className={`
-                      flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm font-mono
-                      ${theme === 'dark' 
-                        ? 'bg-red-500/10 text-red-400 border border-red-500/30' 
-                        : 'bg-red-500/10 text-red-500 border border-red-500/30'}
-                    `}>
+                    <div className={`flex-shrink-0 w-8 h-8 rounded border flex items-center justify-center font-bold text-sm font-mono ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#ff4757]' : 'bg-gray-100 border-gray-200 text-red-500'}`}>
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-sm truncate">{expense.category}</span>
-                        <span className="font-mono font-semibold text-sm">{formatCurrency(expense.amount)}</span>
+                        <span className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{expense.category}</span>
+                        <span className="font-mono font-semibold text-sm" style={{ color: colors.red }}>{formatCurrency(expense.amount)}</span>
                       </div>
-                      <Progress value={(expense.amount / topExpenses[0].amount) * 100} className="h-1.5" />
+                      <Progress value={(expense.amount / topExpenses[0].amount) * 100} className={`h-1.5 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
                     </div>
                   </div>
                 ))}
@@ -665,7 +607,6 @@ const Dashboard: React.FC = () => {
           <TerminalCard 
             title="recent_transactions" 
             subtitle={t('dashboard.last5Transactions')}
-            delay={900}
           >
             <div className="flex justify-end mb-4">
               <TerminalButton 
@@ -673,19 +614,20 @@ const Dashboard: React.FC = () => {
                 size="sm" 
                 onClick={() => navigate('/transactions')}
                 glow={false}
+                className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}
               >
                 {t('dashboard.viewAll')} →
               </TerminalButton>
             </div>
-            
+
             {loading ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+                  <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
                 ))}
               </div>
             ) : recentTransactions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground font-mono">
+              <div className={`text-center py-8 font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
                 {t('status.no_data')}
               </div>
             ) : (
@@ -693,33 +635,23 @@ const Dashboard: React.FC = () => {
                 {recentTransactions.map((transaction) => (
                   <div 
                     key={transaction.id} 
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                    className={`flex items-center justify-between p-3 rounded border cursor-pointer transition-colors ${
+                      isDark 
+                        ? 'bg-[#1a1a1a] border-[#252525] hover:border-[#333333]' 
+                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                    }`}
                     onClick={() => navigate('/transactions')}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`
-                        p-2 rounded-lg
-                        ${transaction.type === 'income' 
-                          ? 'bg-green-500/10 text-green-500' 
-                          : 'bg-red-500/10 text-red-500'}
-                      `}>
-                        {transaction.type === 'income' ? (
-                          <ArrowUpRight className="h-4 w-4" />
-                        ) : (
-                          <ArrowDownRight className="h-4 w-4" />
-                        )}
+                      <div className={`p-2 rounded ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/10 text-[#00d084]' : 'bg-green-100 text-green-600') : (isDark ? 'bg-[#ff4757]/10 text-[#ff4757]' : 'bg-red-100 text-red-600')}`}>
+                        {transaction.type === 'income' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{transaction.category}</p>
-                        <p className="text-xs text-muted-foreground font-mono">
-                          {formatDate(transaction.date)}
-                        </p>
+                        <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</p>
+                        <p className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{formatDate(transaction.date)}</p>
                       </div>
                     </div>
-                    <span className={`
-                      font-mono font-semibold
-                      ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}
-                    `}>
+                    <span className={`font-mono font-semibold ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
                       {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                     </span>
                   </div>

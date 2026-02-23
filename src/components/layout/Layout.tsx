@@ -1,4 +1,4 @@
-
+// Layout.tsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -114,12 +114,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
        
       <header className={`
         sticky top-0 z-50 border-b backdrop-blur-lg
         ${theme === 'dark' 
-          ? 'bg-slate-950/80 border-slate-800' 
+          ? 'bg-black/80 border-slate-800' 
           : 'bg-white/80 border-slate-200'}
       `}>
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
@@ -133,10 +133,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </button>
             
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-              <div className={`
-                relative w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden
-                ${theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-500/10'}
-              `}>
+              {/* Logo dengan background transparan */}
+              <div className="relative w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
                 <img 
                   src="/logo.png" 
                   alt="Alpha Capital" 
@@ -145,16 +143,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚀</text></svg>';
                   }}
                 />
-                <div className="absolute inset-0 bg-amber-500/20 blur-xl" />
               </div>
               <div className="hidden sm:block">
                 <h1 className={`
-                  font-bold text-lg leading-tight
-                  ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}
+                  font-bold text-lg leading-tight font-mono
+                  ${theme === 'dark' ? 'text-amber-400' : 'text-amber-400'}
                 `}>
                   Alpha Capital
                 </h1>
-                <p className="text-xs text-muted-foreground font-mono">v1.0.0</p>
+                <p className={`text-xs font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>v1.0.0</p>
               </div>
             </div>
           </div>
@@ -164,17 +161,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Language Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 font-mono">
+                <Button variant="ghost" size="sm" className={`gap-2 font-mono ${theme === 'dark' ? 'text-amber-400 hover:text-amber-300' : 'text-amber-600 hover:text-amber-700'}`}>
                   <Globe className="h-4 w-4" />
                   <span className="hidden sm:inline">{language === 'id' ? 'ID' : 'EN'}</span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage('id')} className="font-mono">
+              <DropdownMenuContent align="end" className={theme === 'dark' ? 'bg-slate-800 border-slate-800' : 'bg-white border-slate-200'}>
+                <DropdownMenuItem onClick={() => setLanguage('id')} className={`font-mono ${theme === 'dark' ? 'text-amber-500 focus:bg-slate-800' : 'text-amber-600 focus:bg-slate-100'}`}>
                   🇮🇩 Indonesia
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')} className="font-mono">
+                <DropdownMenuItem onClick={() => setLanguage('en')} className={`font-mono ${theme === 'dark' ? 'text-amber-500 focus:bg-slate-800' : 'text-amber-600 focus:bg-slate-100'}`}>
                   🇺🇸 English
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -183,17 +180,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Currency Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 font-mono">
+                <Button variant="ghost" size="sm" className={`gap-2 font-mono ${theme === 'dark' ? 'text-amber-400 hover:text-amber-400' : 'text-amber-600 hover:text-amber-500'}`}>
                   <DollarSign className="h-4 w-4" />
                   <span className="hidden sm:inline">{currency}</span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setCurrency('IDR')} className="font-mono">
+              <DropdownMenuContent align="end" className={theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}>
+                <DropdownMenuItem onClick={() => setCurrency('IDR')} className={`font-mono ${theme === 'dark' ? 'text-amber-400 focus:bg-slate-800' : 'text-amber-500 focus:bg-slate-100'}`}>
                   🇮🇩 IDR (Rp)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCurrency('USD')} className="font-mono">
+                <DropdownMenuItem onClick={() => setCurrency('USD')} className={`font-mono ${theme === 'dark' ? 'text-amber-400 focus:bg-slate-800' : 'text-amber-500 focus:bg-slate-100'}`}>
                   🇺🇸 USD ($)
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -204,7 +201,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               variant="ghost" 
               size="icon" 
               onClick={toggleTheme}
-              className={theme === 'dark' ? 'text-amber-400' : 'text-slate-600'}
+              className={theme === 'dark' ? 'text-amber-400 hover:text-amber-300' : 'text-amber-400 hover:text-amber-500'}
             >
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
@@ -214,10 +211,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               variant="ghost" 
               size="sm" 
               onClick={() => setLogoutDialogOpen(true)}
-              className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+              className={`gap-2 font-mono ${theme === 'dark' ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : 'text-red-500 hover:text-red-600 hover:bg-red-50'}`}
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline font-mono">
+              <span className="hidden sm:inline">
                 {language === 'id' ? 'Keluar' : 'Logout'}
               </span>
             </Button>
@@ -231,7 +228,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           fixed lg:static inset-y-0 left-0 z-40 w-64 border-r transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${theme === 'dark' 
-            ? 'bg-slate-900 border-slate-800' 
+            ? 'bg-black border-slate-800' 
             : 'bg-white border-slate-200'}
         `}>
           {/* Mobile: Add padding top for header */}
@@ -253,8 +250,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     ${active
                       ? (theme === 'dark' 
                         ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
-                        : 'bg-amber-500/10 text-amber-600 border border-amber-500/30')
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        : 'bg-amber-500/10 text-amber-500 border border-amber-400/10')
+                      : (theme === 'dark' 
+                        ? 'text-slate-400 hover:bg-slate-900 hover:text-amber-400' 
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-amber-600')
                     }
                   `}
                 >
@@ -275,7 +274,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="lg:hidden absolute bottom-4 left-4 right-4">
             <Button 
               variant="outline" 
-              className="w-full font-mono"
+              className={`w-full font-mono ${theme === 'dark' ? 'border-slate-700 text-amber-400 hover:bg-slate-900' : 'border-slate-200 text-amber-600 hover:bg-slate-100'}`}
               onClick={() => setSidebarOpen(false)}
             >
               {language === 'id' ? 'Tutup Menu' : 'Close Menu'}
@@ -303,28 +302,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <footer className={`
         border-t py-4 px-4 lg:px-6
         ${theme === 'dark' 
-          ? 'bg-slate-900 border-slate-800' 
+          ? 'bg-black border-slate-800' 
           : 'bg-white border-slate-200'}
       `}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Left: Logo */}
           <div className="flex items-center gap-2">
-            <div className={`
-              w-8 h-8 rounded-lg flex items-center justify-center
-              ${theme === 'dark' ? 'bg-amber-500/20' : 'bg-amber-500/10'}
-            `}>
-             <span className={`
-  font-mono font-bold text-lg
-  ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}
-`}>
-  &gt;_
-</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent">
+              <span className={`
+                font-mono font-bold text-lg
+                ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}
+              `}>
+                &gt;_
+              </span>
             </div>
-            <span className="font-bold text-sm text-muted-foreground">Alpha Capital</span>
+            <span className={`font-bold text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Alpha Capital</span>
           </div>
 
           {/* Center: Powered by */}
-          <div className="text-xs text-muted-foreground font-mono text-center">
+          <div className={`text-xs font-mono text-center ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
             {language === 'id' ? 'Ditenagai oleh' : 'Powered by'}{' '}
             <span className={theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}>
               Rose Alpha
@@ -342,7 +338,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 className={`
                   w-8 h-8 rounded-lg flex items-center justify-center transition-all
                   ${theme === 'dark' 
-                    ? 'bg-slate-800 text-slate-400 hover:bg-amber-500/20 hover:text-amber-400' 
+                    ? 'bg-slate-900 text-slate-400 hover:bg-amber-500/20 hover:text-amber-400' 
                     : 'bg-slate-100 text-slate-600 hover:bg-amber-500/10 hover:text-amber-600'}
                 `}
                 title={social.name}
@@ -358,26 +354,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
         <AlertDialogContent className={`
           ${theme === 'dark' 
-            ? 'bg-slate-900 border-slate-800' 
+            ? 'bg-black border-slate-800' 
             : 'bg-white border-slate-200'}
         `}>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-mono">
+            <AlertDialogTitle className={`font-mono ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>
               {language === 'id' ? 'Konfirmasi Keluar' : 'Confirm Logout'}
             </AlertDialogTitle>
-            <AlertDialogDescription className="font-mono">
+            <AlertDialogDescription className={`font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
               {language === 'id' 
                 ? 'Apakah Anda yakin ingin keluar dari aplikasi?' 
                 : 'Are you sure you want to logout?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="font-mono">
+            <AlertDialogCancel className={`font-mono ${theme === 'dark' ? 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'}`}>
               {language === 'id' ? 'Batal' : 'Cancel'}
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleSignOut}
-              className="bg-red-500 hover:bg-red-600 font-mono"
+              className="bg-red-500 hover:bg-red-600 font-mono text-white"
             >
               {language === 'id' ? 'Keluar' : 'Logout'}
             </AlertDialogAction>

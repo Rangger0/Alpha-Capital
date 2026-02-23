@@ -147,7 +147,7 @@ const Login = () => {
               <span>{'>'}</span>
               <span className="animate-pulse">{'_'}</span>
             </div>
-            <span className="ml-3 text-xs text-muted-foreground font-mono">alpha_capital_login - bash - 80x24</span>
+            <span className="ml-3 text-xs text-muted-foreground font-mono">alpha_capital_login </span>
           </div>
 
           <div className="p-6 space-y-6">

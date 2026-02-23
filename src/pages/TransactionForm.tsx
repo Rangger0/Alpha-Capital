@@ -1,4 +1,3 @@
-// src/pages/TransactionForm.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, FileText, DollarSign } from 'lucide-react';
@@ -29,7 +28,6 @@ import {
   TerminalCard,
   TerminalButton,
   TerminalPrompt,
-  TerminalText,
 } from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
 
@@ -41,6 +39,7 @@ const TransactionForm: React.FC = () => {
   const { theme } = useTheme();
   const { language, formatCurrency } = useLanguage();
   const isEdit = Boolean(id);
+  const isDark = theme === 'dark';
 
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
@@ -171,37 +170,26 @@ const TransactionForm: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header - Terminal Style */}
-        <div className="flex items-center gap-4 pb-4 border-b border-border/50">
+        {/* Header */}
+        <div className={`flex items-center gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
           <TerminalButton 
             variant="ghost" 
-         
             onClick={() => navigate('/transactions')}
             glow={false}
+            className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}
           >
             <ArrowLeft className="h-5 w-5" />
           </TerminalButton>
           <div>
             <TerminalPrompt 
               command={isEdit ? `transactions --edit --id=${id}` : 'transactions --new'} 
-              className="mb-2"
+              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
             />
-            <h1 className="text-3xl font-bold tracking-tight">
-              <TerminalText 
-                text={isEdit 
-                  ? (language === 'id' ? 'Edit Transaksi' : 'Edit Transaction')
-                  : (language === 'id' ? 'Tambah Transaksi' : 'Add Transaction')
-                } 
-                typing 
-                delay={100}
-                className={theme === 'dark' ? 'text-green-400' : 'text-blue-500'}
-              />
+            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {isEdit ? (language === 'id' ? 'Edit Transaksi' : 'Edit Transaction') : (language === 'id' ? 'Tambah Transaksi' : 'Add Transaction')}
             </h1>
-            <p className="text-muted-foreground mt-1 font-mono text-sm">
-              {isEdit 
-                ? (language === 'id' ? 'Perbarui detail transaksi' : 'Update transaction details')
-                : (language === 'id' ? 'Catat transaksi baru' : 'Record new transaction')
-              }
+            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
+              {isEdit ? (language === 'id' ? 'Perbarui detail transaksi' : 'Update transaction details') : (language === 'id' ? 'Catat transaksi baru' : 'Record new transaction')}
             </p>
           </div>
         </div>
@@ -209,19 +197,18 @@ const TransactionForm: React.FC = () => {
         <TerminalCard 
           title="transaction_form" 
           subtitle={language === 'id' ? 'isi_detail_transaksi' : 'fill_transaction_details'}
-          delay={200}
         >
           <div className="p-6">
             {error && (
-              <Alert variant="destructive" className="mb-6 border-red-500/50">
-                <AlertDescription className="font-mono">{error}</AlertDescription>
+              <Alert variant="destructive" className={`mb-6 ${isDark ? 'border-[#ff4757]/50 bg-[#ff4757]/10' : 'border-red-200 bg-red-50'}`}>
+                <AlertDescription className={`font-mono ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>{error}</AlertDescription>
               </Alert>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Type Selection */}
               <div className="space-y-2">
-                <Label className="font-mono text-sm">
+                <Label className={`font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                   {language === 'id' ? 'Jenis Transaksi' : 'Transaction Type'}
                 </Label>
                 <div className="grid grid-cols-2 gap-4">
@@ -229,62 +216,58 @@ const TransactionForm: React.FC = () => {
                     type="button"
                     onClick={() => setType('income')}
                     className={`
-                      p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2
+                      p-4 rounded border-2 transition-all flex flex-col items-center gap-2
                       ${type === 'income'
-                        ? (theme === 'dark' 
-                          ? 'border-green-500 bg-green-500/10 text-green-400' 
-                          : 'border-green-500 bg-green-50 text-green-700')
-                        : 'border-border hover:border-green-200'
+                        ? (isDark 
+                            ? 'border-[#00d084] bg-[#00d084]/10 text-[#00d084]' 
+                            : 'border-green-500 bg-green-50 text-green-600')
+                        : (isDark 
+                            ? 'border-[#333333] hover:border-[#00d084]/50 text-[#a0a0a0]' 
+                            : 'border-gray-200 hover:border-green-300 text-gray-500')
                       }
                     `}
                   >
-                    <div className={`
-                      p-2 rounded-full
-                      ${type === 'income' 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-muted'}
-                    `}>
+                    <div className={`p-2 rounded-full ${type === 'income' 
+                      ? (isDark ? 'bg-[#00d084] text-black' : 'bg-green-500 text-white')
+                      : (isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100')
+                    }`}>
                       <DollarSign className="h-5 w-5" />
                     </div>
-                    <span className="font-medium font-mono">
-                      {language === 'id' ? 'Pemasukan' : 'Income'}
-                    </span>
+                    <span className="font-medium font-mono">{language === 'id' ? 'Pemasukan' : 'Income'}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setType('expense')}
                     className={`
-                      p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2
+                      p-4 rounded border-2 transition-all flex flex-col items-center gap-2
                       ${type === 'expense'
-                        ? (theme === 'dark' 
-                          ? 'border-red-500 bg-red-500/10 text-red-400' 
-                          : 'border-red-500 bg-red-50 text-red-700')
-                        : 'border-border hover:border-red-200'
+                        ? (isDark 
+                            ? 'border-[#ff4757] bg-[#ff4757]/10 text-[#ff4757]' 
+                            : 'border-red-500 bg-red-50 text-red-600')
+                        : (isDark 
+                            ? 'border-[#333333] hover:border-[#ff4757]/50 text-[#a0a0a0]' 
+                            : 'border-gray-200 hover:border-red-300 text-gray-500')
                       }
                     `}
                   >
-                    <div className={`
-                      p-2 rounded-full
-                      ${type === 'expense' 
-                        ? 'bg-red-500 text-white' 
-                        : 'bg-muted'}
-                    `}>
+                    <div className={`p-2 rounded-full ${type === 'expense' 
+                      ? (isDark ? 'bg-[#ff4757] text-white' : 'bg-red-500 text-white')
+                      : (isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100')
+                    }`}>
                       <DollarSign className="h-5 w-5" />
                     </div>
-                    <span className="font-medium font-mono">
-                      {language === 'id' ? 'Pengeluaran' : 'Expense'}
-                    </span>
+                    <span className="font-medium font-mono">{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
                   </button>
                 </div>
               </div>
 
               {/* Amount */}
               <div className="space-y-2">
-                <Label htmlFor="amount" className="font-mono text-sm">
+                <Label htmlFor="amount" className={`font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                   {language === 'id' ? 'Nominal' : 'Amount'}
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-mono font-bold">
+                  <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-mono font-bold ${isDark ? 'text-[#ffa502]' : 'text-blue-600'}`}>
                     {currencySymbol}
                   </span>
                   <Input
@@ -294,12 +277,11 @@ const TransactionForm: React.FC = () => {
                     placeholder="0"
                     value={amount}
                     onChange={handleAmountChange}
-                    className={`
-                      pl-10 text-lg font-mono bg-muted/50 border
-                      ${theme === 'dark' 
-                        ? 'border-green-500/30 focus:border-green-500' 
-                        : 'border-blue-500/30 focus:border-blue-500'}
-                    `}
+                    className={`pl-10 text-lg font-mono ${
+                      isDark 
+                        ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502] focus:ring-[#ffa502]' 
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500'
+                    }`}
                     required
                   />
                 </div>
@@ -307,32 +289,33 @@ const TransactionForm: React.FC = () => {
 
               {/* Category */}
               <div className="space-y-2">
-                <Label className="font-mono text-sm">
+                <Label className={`font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                   {language === 'id' ? 'Kategori' : 'Category'}
                 </Label>
                 <div className="flex gap-2">
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className={`
-                      flex-1 font-mono bg-muted/50 border
-                      ${theme === 'dark' 
-                        ? 'border-green-500/30 focus:border-green-500' 
-                        : 'border-blue-500/30 focus:border-blue-500'}
-                    `}>
+                    <SelectTrigger className={`flex-1 font-mono ${
+                      isDark 
+                        ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502]' 
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+                    }`}>
                       <SelectValue placeholder={language === 'id' ? 'Pilih kategori' : 'Select category'} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={isDark ? 'bg-[#111111] border-[#333333]' : 'bg-white border-gray-200'}>
                       {categories.length === 0 ? (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center font-mono">
+                        <div className={`px-2 py-4 text-sm text-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
                           {language === 'id' ? 'Belum ada kategori' : 'No categories yet'}
                         </div>
                       ) : (
-                        categories
-                          .filter((cat) => cat && typeof cat === 'string' && cat.trim() !== '')
-                          .map((cat, index) => (
-                            <SelectItem key={`${cat}-${index}`} value={cat} className="font-mono">
-                              {cat}
-                            </SelectItem>
-                          ))
+                        categories.filter((cat) => cat && typeof cat === 'string' && cat.trim() !== '').map((cat, index) => (
+                          <SelectItem key={`${cat}-${index}`} value={cat} className={`font-mono ${
+                            isDark 
+                              ? 'text-white hover:bg-[#1a1a1a]' 
+                              : 'text-gray-900 hover:bg-gray-100'
+                          }`}>
+                            {cat}
+                          </SelectItem>
+                        ))
                       )}
                     </SelectContent>
                   </Select>
@@ -343,7 +326,11 @@ const TransactionForm: React.FC = () => {
                       setNewCategoryType(type);
                       setNewCategoryDialogOpen(true);
                     }}
-                    className="font-mono"
+                    className={`font-mono ${
+                      isDark 
+                        ? 'bg-[#1a1a1a] border-[#333333] text-white hover:bg-[#252525] hover:border-[#ffa502]' 
+                        : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 hover:border-blue-500'
+                    }`}
                   >
                     + {language === 'id' ? 'Baru' : 'New'}
                   </Button>
@@ -352,7 +339,7 @@ const TransactionForm: React.FC = () => {
 
               {/* Date */}
               <div className="space-y-2">
-                <Label htmlFor="date" className="font-mono text-sm">
+                <Label htmlFor="date" className={`font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                   {language === 'id' ? 'Tanggal' : 'Date'}
                 </Label>
                 <Input
@@ -360,35 +347,32 @@ const TransactionForm: React.FC = () => {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`
-                    text-lg font-mono bg-muted/50 border
-                    ${theme === 'dark' 
-                      ? 'border-green-500/30 focus:border-green-500' 
-                      : 'border-blue-500/30 focus:border-blue-500'}
-                  `}
+                  className={`text-lg font-mono ${
+                    isDark 
+                      ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502] focus:ring-[#ffa502]' 
+                      : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
                   required
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description" className="font-mono text-sm">
+                <Label htmlFor="description" className={`font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                   {language === 'id' ? 'Deskripsi (Opsional)' : 'Description (Optional)'}
                 </Label>
                 <div className="relative">
-                  <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <FileText className={`absolute left-3 top-3 h-4 w-4 ${isDark ? 'text-[#666666]' : 'text-gray-400'}`} />
                   <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={language === 'id' ? 'Tambahkan keterangan...' : 'Add notes...'}
-                    className={`
-                      w-full min-h-[100px] px-10 py-2 rounded-md border bg-background text-sm font-mono
-                      ${theme === 'dark' 
-                        ? 'border-green-500/30 focus:border-green-500 focus:ring-1 focus:ring-green-500' 
-                        : 'border-blue-500/30 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'}
-                      placeholder:text-muted-foreground outline-none resize-none
-                    `}
+                    className={`w-full min-h-[100px] px-10 py-2 rounded-md border text-sm font-mono outline-none resize-none ${
+                      isDark 
+                        ? 'bg-[#0a0a0a] text-white border-[#333333] focus:border-[#ffa502] focus:ring-[#ffa502] placeholder:text-[#666666]' 
+                        : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500 focus:ring-blue-500 placeholder:text-gray-400'
+                    }`}
                   />
                 </div>
               </div>
@@ -398,7 +382,11 @@ const TransactionForm: React.FC = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 font-mono"
+                  className={`flex-1 font-mono ${
+                    isDark 
+                      ? 'bg-[#1a1a1a] border-[#333333] text-white hover:bg-[#252525]' 
+                      : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                  }`}
                   onClick={() => navigate('/transactions')}
                 >
                   {language === 'id' ? 'Batal' : 'Cancel'}
@@ -409,12 +397,7 @@ const TransactionForm: React.FC = () => {
                   disabled={loading}
                   glow
                 >
-                  {loading 
-                    ? (language === 'id' ? 'Menyimpan...' : 'Saving...') 
-                    : isEdit 
-                      ? (language === 'id' ? 'Simpan Perubahan' : 'Save Changes')
-                      : (language === 'id' ? 'Simpan Transaksi' : 'Save Transaction')
-                  }
+                  {loading ? (language === 'id' ? 'Menyimpan...' : 'Saving...') : isEdit ? (language === 'id' ? 'Simpan Perubahan' : 'Save Changes') : (language === 'id' ? 'Simpan Transaksi' : 'Save Transaction')}
                 </TerminalButton>
               </div>
             </form>
@@ -424,25 +407,18 @@ const TransactionForm: React.FC = () => {
 
       {/* New Category Dialog */}
       <Dialog open={newCategoryDialogOpen} onOpenChange={setNewCategoryDialogOpen}>
-        <DialogContent className={`
-          border
-          ${theme === 'dark' 
-            ? 'border-green-500/30 bg-slate-900' 
-            : 'border-blue-500/30'}
-        `}>
+        <DialogContent className={isDark ? 'border-[#333333] bg-[#111111]' : 'border-gray-200 bg-white'}>
           <DialogHeader>
-            <DialogTitle className="font-mono">
+            <DialogTitle className={`font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {language === 'id' ? 'Tambah Kategori Baru' : 'Add New Category'}
             </DialogTitle>
-            <DialogDescription className="font-mono">
-              {language === 'id' 
-                ? 'Buat kategori baru untuk transaksi Anda.'
-                : 'Create a new category for your transactions.'}
+            <DialogDescription className={`font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
+              {language === 'id' ? 'Buat kategori baru untuk transaksi Anda.' : 'Create a new category for your transactions.'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="new-category" className="font-mono">
+              <Label htmlFor="new-category" className={`font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                 {language === 'id' ? 'Nama Kategori' : 'Category Name'}
               </Label>
               <Input
@@ -450,35 +426,30 @@ const TransactionForm: React.FC = () => {
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder={language === 'id' ? 'Contoh: Makanan, Transport, Gaji' : 'e.g., Food, Transport, Salary'}
-                className={`
-                  font-mono bg-muted/50 border
-                  ${theme === 'dark' 
-                    ? 'border-green-500/30 focus:border-green-500' 
-                    : 'border-blue-500/30 focus:border-blue-500'}
-                `}
+                className={`font-mono ${
+                  isDark 
+                    ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502]' 
+                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+                }`}
               />
             </div>
             <div className="space-y-2">
-              <Label className="font-mono">
+              <Label className={`font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                 {language === 'id' ? 'Jenis' : 'Type'}
               </Label>
-              <Select
-                value={newCategoryType}
-                onValueChange={(v) => setNewCategoryType(v as 'income' | 'expense')}
-              >
-                <SelectTrigger className={`
-                  font-mono bg-muted/50 border
-                  ${theme === 'dark' 
-                    ? 'border-green-500/30 focus:border-green-500' 
-                    : 'border-blue-500/30 focus:border-blue-500'}
-                `}>
+              <Select value={newCategoryType} onValueChange={(v) => setNewCategoryType(v as 'income' | 'expense')}>
+                <SelectTrigger className={`font-mono ${
+                  isDark 
+                    ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502]' 
+                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+                }`}>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="income" className="font-mono text-green-500">
+                <SelectContent className={isDark ? 'bg-[#111111] border-[#333333]' : 'bg-white border-gray-200'}>
+                  <SelectItem value="income" className={`font-mono ${isDark ? 'text-[#00d084] hover:bg-[#1a1a1a]' : 'text-green-600 hover:bg-green-50'}`}>
                     {language === 'id' ? 'Pemasukan' : 'Income'}
                   </SelectItem>
-                  <SelectItem value="expense" className="font-mono text-red-500">
+                  <SelectItem value="expense" className={`font-mono ${isDark ? 'text-[#ff4757] hover:bg-[#1a1a1a]' : 'text-red-600 hover:bg-red-50'}`}>
                     {language === 'id' ? 'Pengeluaran' : 'Expense'}
                   </SelectItem>
                 </SelectContent>
@@ -489,7 +460,11 @@ const TransactionForm: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={() => setNewCategoryDialogOpen(false)}
-              className="font-mono"
+              className={`font-mono ${
+                isDark 
+                  ? 'bg-[#1a1a1a] border-[#333333] text-white hover:bg-[#252525]' 
+                  : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+              }`}
             >
               {language === 'id' ? 'Batal' : 'Cancel'}
             </Button>

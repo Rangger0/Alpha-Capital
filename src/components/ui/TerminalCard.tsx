@@ -1,6 +1,6 @@
-// src/components/ui/TerminalCard.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 // ==========================================
 // Terminal Card Component
@@ -13,6 +13,7 @@ interface TerminalCardProps {
   delay?: number;
   showHeader?: boolean;
   glow?: boolean;
+  animate?: boolean;
 }
 
 export const TerminalCard: React.FC<TerminalCardProps> = ({
@@ -20,119 +21,87 @@ export const TerminalCard: React.FC<TerminalCardProps> = ({
   title,
   subtitle,
   className = '',
-  delay = 0,
+  delay,
   showHeader = true,
   glow = true,
+  animate = true,
 }) => {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
+  const isDark = theme === 'dark';
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   return (
     <div
+      ref={animate ? ref : undefined}
       className={`
-        relative overflow-hidden rounded-lg border
-        ${theme === 'dark' ? 'border-green-500/30' : 'border-blue-500/30'}
-        ${glow ? (theme === 'dark' ? 'shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'shadow-[0_0_30px_rgba(59,130,246,0.1)]') : ''}
-        bg-card/80 backdrop-blur-sm
+        relative overflow-hidden rounded-lg border backdrop-blur-sm
         transition-all duration-500 ease-out
-        ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
+        ${isDark 
+          ? 'border-[#333333] bg-[#111111]' 
+          : 'border-gray-200 bg-white shadow-sm'}
+        ${glow && isDark ? 'shadow-[0_0_30px_rgba(255,165,2,0.1)]' : ''}
+        ${glow && !isDark ? 'shadow-[0_0_30px_rgba(59,130,246,0.1)]' : ''}
+        ${animate ? (isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6') : ''}
         ${className}
       `}
     >
       {showHeader && (
         <div className={`
           flex items-center gap-3 px-4 py-3 border-b
-          ${theme === 'dark' ? 'border-green-500/20 bg-green-500/5' : 'border-blue-500/20 bg-blue-500/5'}
+          ${isDark 
+            ? 'border-[#333333] bg-[#1a1a1a]' 
+            : 'border-gray-200 bg-gray-50'}
         `}>
-          {/* 🔥 NEW: Terminal Logo >_ */}
-          <TerminalLogo delay={delay} />
-          
+          {/* Terminal Logo >_ */}
+          <div className={`
+            flex items-center justify-center w-10 h-6 rounded font-mono text-xs font-bold border
+            ${isDark 
+              ? 'bg-[#ffa502]/20 text-[#ffa502] border-[#ffa502]/30' 
+              : 'bg-blue-100 text-blue-600 border-blue-200'}
+          `}>
+            &gt;_
+          </div>
+
           {/* Title */}
           {title && (
             <div className="flex items-center gap-2">
               <span className={`
                 text-xs font-mono uppercase tracking-wider
-                ${theme === 'dark' ? 'text-green-400' : 'text-blue-500'}
+                ${isDark ? 'text-[#ffa502]' : 'text-blue-600'}
               `}>
                 {title}
               </span>
               {subtitle && (
-                <span className="text-xs text-muted-foreground">— {subtitle}</span>
+                <span className={`text-xs ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+                  — {subtitle}
+                </span>
               )}
             </div>
           )}
-          
-          {/* Status */}
+
+          {/* ⬇️ STATUS DOT YANG DIMODIFIKASI ⬇️ */}
           <div className="ml-auto flex items-center gap-2">
-            <div className={`
-              w-2 h-2 rounded-full animate-pulse
-              ${theme === 'dark' ? 'bg-green-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]'}
-            `} />
-            <span className="text-[10px] text-muted-foreground font-mono">80×24</span>
+            <div 
+              className="w-2 h-2 rounded-full"
+              style={{ 
+                backgroundColor: isDark ? '#EAB308' : '#000000' // Kuning (dark), Hitam (light)
+              }}
+            />
+            {/* Tidak ada animate-pulse lagi */}
+            <span className={`text-[10px] font-mono ${isDark ? 'text-[#666666]' : 'text-gray-400'}`}>
+            </span>
           </div>
         </div>
       )}
-      
+
       <div className="p-4">
         {children}
       </div>
-      
+
       {/* Scan line effect */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.02]">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.01]">
         <div className="w-full h-full bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
       </div>
-    </div>
-  );
-};
-
-// 🔥 NEW: Terminal Logo Component
-interface TerminalLogoProps {
-  delay?: number;
-}
-
-const TerminalLogo: React.FC<TerminalLogoProps> = ({ delay = 0 }) => {
-  const { theme } = useTheme();
-  const [typedText, setTypedText] = useState('');
-  const [showCursor, setShowCursor] = useState(false);
-  const fullText = '>_';
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i <= fullText.length) {
-          setTypedText(fullText.slice(0, i));
-          i++;
-        } else {
-          clearInterval(interval);
-          setShowCursor(true);
-        }
-      }, 120);
-      return () => clearInterval(interval);
-    }, delay + 300);
-    return () => clearTimeout(timer);
-  }, [delay]);
-
-  return (
-    <div className={`
-      flex items-center justify-center w-10 h-6 rounded font-mono text-xs font-bold
-      ${theme === 'dark' 
-        ? 'bg-green-500/20 text-green-400 border border-green-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
-        : 'bg-blue-500/20 text-blue-500 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
-      }
-    `}>
-      <span>{typedText}</span>
-      {showCursor && (
-        <span className={`
-          inline-block w-1.5 h-3.5 ml-0.5 animate-terminal-blink
-          ${theme === 'dark' ? 'bg-green-400' : 'bg-blue-500'}
-        `} />
-      )}
     </div>
   );
 };
@@ -152,53 +121,22 @@ interface TerminalTextProps {
 export const TerminalText: React.FC<TerminalTextProps> = ({
   text,
   className = '',
-  typing = false,
-  delay = 0,
+  typing,
+  delay,
   prefix = '',
-  showCursor = false,
+  showCursor,
 }) => {
-  const [displayText, setDisplayText] = useState(typing ? '' : text);
-  const [showBlinkCursor, setShowBlinkCursor] = useState(showCursor);
   const { theme } = useTheme();
-
-  useEffect(() => {
-    if (!typing) {
-      setDisplayText(text);
-      return;
-    }
-
-    let currentIndex = 0;
-    const timer = setTimeout(() => {
-      const interval = setInterval(() => {
-        if (currentIndex <= text.length) {
-          setDisplayText(text.slice(0, currentIndex));
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-          setShowBlinkCursor(true);
-        }
-      }, 30);
-
-      return () => clearInterval(interval);
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [text, typing, delay]);
+  const isDark = theme === 'dark';
 
   return (
     <span className={`font-mono ${className}`}>
       {prefix && (
-        <span className={theme === 'dark' ? 'text-green-500' : 'text-blue-500'}>
+        <span className={isDark ? 'text-[#ffa502]' : 'text-blue-500'}>
           {prefix}
         </span>
       )}
-      {displayText}
-      {showBlinkCursor && (
-        <span className={`
-          inline-block w-2 h-4 ml-0.5 align-middle animate-pulse
-          ${theme === 'dark' ? 'bg-green-500' : 'bg-blue-500'}
-        `} />
-      )}
+      {text}
     </span>
   );
 };
@@ -218,17 +156,18 @@ export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
   className = '',
 }) => {
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <div className={`font-mono text-sm ${className}`}>
-      <span className="text-muted-foreground">➜</span>{' '}
-      <span className={theme === 'dark' ? 'text-green-400' : 'text-blue-400'}>
+      <span className={isDark ? 'text-[#666666]' : 'text-gray-400'}>➜</span>{' '}
+      <span className={isDark ? 'text-[#ffa502]' : 'text-blue-500'}>
         {path}
       </span>{' '}
-      <span className="text-muted-foreground">git:(</span>
-      <span className={theme === 'dark' ? 'text-red-400' : 'text-orange-400'}>main</span>
-      <span className="text-muted-foreground">)</span>{' '}
-      <span className="text-foreground">{command}</span>
+      <span className={isDark ? 'text-[#666666]' : 'text-gray-400'}>git:(</span>
+      <span className={isDark ? 'text-[#ff4757]' : 'text-red-500'}>main</span>
+      <span className={isDark ? 'text-[#666666]' : 'text-gray-400'}>)</span>{' '}
+      <span className={isDark ? 'text-white' : 'text-gray-900'}>{command}</span>
     </div>
   );
 };
@@ -253,47 +192,37 @@ export const TerminalStat: React.FC<TerminalStatProps> = ({
   trend,
   trendUp,
   loading = false,
-  delay = 0,
+  delay,
 }) => {
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
+  const isDark = theme === 'dark';
 
   if (loading) {
     return (
       <div className="space-y-2">
-        <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-        <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+        <div className={`h-4 w-24 rounded animate-pulse ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-200'}`} />
+        <div className={`h-8 w-32 rounded animate-pulse ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-200'}`} />
       </div>
     );
   }
 
   return (
-    <div className={`space-y-1 transition-all duration-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
+    <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <span className={`
-          text-xs font-mono uppercase tracking-wider
-          ${theme === 'dark' ? 'text-green-400/70' : 'text-blue-500/70'}
-        `}>
+        <span className={`text-xs font-mono uppercase tracking-wider ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
           {prefix} {label}
         </span>
         {trend && (
-          <span className={`
-            text-[10px] px-1.5 py-0.5 rounded font-mono
-            ${trendUp 
-              ? (theme === 'dark' ? 'bg-green-500/20 text-green-400' : 'bg-green-500/20 text-green-600')
-              : (theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-500/20 text-red-600')
-            }
-          `}>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+            trendUp 
+              ? (isDark ? 'text-[#EAB308] bg-[#EAB308]/10' : 'text-yellow-600 bg-yellow-100') 
+              : (isDark ? 'text-[#DC2626] bg-[#DC2626]/10' : 'text-blue-800 bg-blue-100')
+          }`}>
             {trendUp ? '▲' : '▼'} {trend}
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold font-mono tracking-tight text-foreground">
+      <p className={`text-2xl font-bold font-mono tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
         {value}
       </p>
     </div>
@@ -301,11 +230,11 @@ export const TerminalStat: React.FC<TerminalStatProps> = ({
 };
 
 // ==========================================
-// Terminal Badge Component
+// Terminal Badge Component (MODIFIED)
 // ==========================================
 interface TerminalBadgeProps {
   children: React.ReactNode;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info';
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'income' | 'expense';
   className?: string;
 }
 
@@ -315,13 +244,31 @@ export const TerminalBadge: React.FC<TerminalBadgeProps> = ({
   className = '',
 }) => {
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const variants = {
-    default: theme === 'dark' ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-blue-500/10 text-blue-600 border-blue-500/30',
-    success: theme === 'dark' ? 'bg-green-500/20 text-green-400 border-green-500/40' : 'bg-green-500/20 text-green-600 border-green-500/40',
-    warning: theme === 'dark' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' : 'bg-yellow-500/20 text-yellow-600 border-yellow-500/40',
-    danger: theme === 'dark' ? 'bg-red-500/20 text-red-400 border-red-500/40' : 'bg-red-500/20 text-red-600 border-red-500/40',
-    info: theme === 'dark' ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' : 'bg-cyan-500/20 text-cyan-600 border-cyan-500/40',
+    default: isDark 
+      ? 'bg-[#1a1a1a] text-[#ffa502] border-[#333333]' 
+      : 'bg-gray-100 text-blue-600 border-gray-200',
+    success: isDark 
+      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30' // Kuning
+      : 'bg-yellow-100 text-yellow-700 border-yellow-200', // Kuning
+    warning: isDark 
+      ? 'bg-[#ffa502]/10 text-[#ffa502] border-[#ffa502]/30' 
+      : 'bg-yellow-100 text-yellow-600 border-yellow-200',
+    danger: isDark 
+      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30' // Merah
+      : 'bg-blue-900 text-white border-blue-800', // Biru tua
+    info: isDark 
+      ? 'bg-[#3742fa]/10 text-[#3742fa] border-[#3742fa]/30' 
+      : 'bg-blue-100 text-blue-600 border-blue-200',
+    // ⬇️ VARIAN BARU ⬇️
+    income: isDark 
+      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30' // Kuning
+      : 'bg-yellow-100 text-yellow-700 border-yellow-200', // Kuning
+    expense: isDark 
+      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30' // Merah
+      : 'bg-blue-900 text-white border-blue-800', // Biru tua
   };
 
   return (
@@ -354,6 +301,7 @@ export const TerminalButton: React.FC<TerminalButtonProps> = ({
   ...props
 }) => {
   const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const sizes = {
     sm: 'px-3 py-1.5 text-xs',
@@ -362,15 +310,23 @@ export const TerminalButton: React.FC<TerminalButtonProps> = ({
   };
 
   const variants = {
-    primary: theme === 'dark'
-      ? 'bg-green-500 text-black hover:bg-green-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
-      : 'bg-blue-500 text-white hover:bg-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]',
-    secondary: theme === 'dark'
-      ? 'bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20'
-      : 'bg-blue-500/10 text-blue-600 border border-blue-500/30 hover:bg-blue-500/20',
-    ghost: theme === 'dark'
-      ? 'text-green-400 hover:bg-green-500/10'
-      : 'text-blue-600 hover:bg-blue-500/10',
+    primary: isDark
+      ? 'bg-[#ffa502] text-black hover:bg-[#ffb52e]'
+      : 'bg-blue-500 text-white hover:bg-blue-600',
+    secondary: isDark
+      ? 'bg-[#1a1a1a] text-white border border-[#333333] hover:bg-[#252525]'
+      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200',
+    ghost: isDark
+      ? 'text-[#a0a0a0] hover:text-white hover:bg-[#1a1a1a]'
+      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+  };
+
+  const glowStyles = {
+    primary: isDark 
+      ? 'shadow-[0_0_20px_rgba(255,165,2,0.3)] hover:shadow-[0_0_30px_rgba(255,165,2,0.5)]'
+      : 'shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]',
+    secondary: '',
+    ghost: '',
   };
 
   return (
@@ -379,7 +335,7 @@ export const TerminalButton: React.FC<TerminalButtonProps> = ({
         font-mono font-medium rounded transition-all duration-200
         ${sizes[size]}
         ${variants[variant]}
-        ${glow && variant === 'primary' ? (theme === 'dark' ? 'hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]' : 'hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]') : ''}
+        ${glow ? glowStyles[variant] : ''}
         disabled:opacity-50 disabled:cursor-not-allowed
         ${className}
       `}
@@ -389,3 +345,6 @@ export const TerminalButton: React.FC<TerminalButtonProps> = ({
     </button>
   );
 };
+
+// Default export
+export default TerminalCard;

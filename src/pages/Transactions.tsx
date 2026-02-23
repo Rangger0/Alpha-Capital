@@ -1,3 +1,4 @@
+// src/pages/Transactions.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -11,12 +12,12 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { getTransactions, deleteTransaction, getCategories } from '@/lib/supabase';
 import type { Transaction, Category } from '@/types';
-import { formatRupiah, formatDate } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
@@ -35,11 +36,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  TerminalCard,
+  TerminalButton,
+  TerminalPrompt,
+  TerminalText,
+  TerminalBadge,
+} from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const { language, formatCurrency, formatDate: formatDateLang } = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +97,6 @@ const Transactions: React.FC = () => {
 
   const getFilteredTransactions = () => {
     return transactions.filter((transaction) => {
-      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
@@ -96,13 +105,9 @@ const Transactions: React.FC = () => {
         if (!matchesSearch) return false;
       }
 
-      // Type filter
       if (filterType !== 'all' && transaction.type !== filterType) return false;
-
-      // Category filter
       if (filterCategory !== 'all' && transaction.category !== filterCategory) return false;
 
-      // Period filter
       if (filterPeriod !== 'all') {
         const transactionDate = new Date(transaction.date);
         const now = new Date();
@@ -144,57 +149,109 @@ const Transactions: React.FC = () => {
 
   const hasFilters = searchQuery || filterType !== 'all' || filterCategory !== 'all' || filterPeriod !== 'all';
 
+  // Translations
+  const typeLabels = {
+    all: language === 'id' ? 'Semua Jenis' : 'All Types',
+    income: language === 'id' ? 'Pemasukan' : 'Income',
+    expense: language === 'id' ? 'Pengeluaran' : 'Expense',
+  };
+
+  const periodLabels = {
+    all: language === 'id' ? 'Semua Waktu' : 'All Time',
+    today: language === 'id' ? 'Hari Ini' : 'Today',
+    week: language === 'id' ? '7 Hari Terakhir' : 'Last 7 Days',
+    month: language === 'id' ? 'Bulan Ini' : 'This Month',
+    year: language === 'id' ? 'Tahun Ini' : 'This Year',
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Header - Terminal Style */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-border/50">
           <div>
-            <h1 className="text-2xl font-bold">Transaksi</h1>
-            <p className="text-muted-foreground">Kelola semua transaksi Anda</p>
+            <TerminalPrompt 
+              command="transactions --list --all" 
+              className="mb-2"
+            />
+            <h1 className="text-3xl font-bold tracking-tight">
+              <TerminalText 
+                text={language === 'id' ? 'Transaksi' : 'Transactions'} 
+                typing 
+                delay={100}
+                className={theme === 'dark' ? 'text-green-400' : 'text-blue-500'}
+              />
+            </h1>
+            <p className="text-muted-foreground mt-1 font-mono text-sm">
+              {language === 'id' ? 'Kelola semua transaksi Anda' : 'Manage all your transactions'}
+            </p>
           </div>
-          <Button onClick={() => navigate('/transactions/new')}>
+          
+          <TerminalButton 
+            onClick={() => navigate('/transactions/new')}
+            glow
+          >
             <Plus className="h-4 w-4 mr-2" />
-            Tambah Transaksi
-          </Button>
+            {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
+          </TerminalButton>
         </div>
 
-        {/* Filters */}
-        <Card className="border-border/50">
-          <CardContent className="p-4 space-y-4">
+        {/* Filters - Terminal Style */}
+        <TerminalCard 
+          title="filter_config" 
+          subtitle={language === 'id' ? 'konfigurasi_parameter' : 'parameter_config'}
+          delay={100}
+          glow={false}
+        >
+          <div className="space-y-4">
             <div className="flex flex-col lg:flex-row gap-4">
               {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Cari transaksi..."
+                  placeholder={language === 'id' ? 'Cari transaksi...' : 'Search transactions...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className={`
+                    pl-10 font-mono bg-muted/50 border
+                    ${theme === 'dark' 
+                      ? 'border-green-500/30 focus:border-green-500' 
+                      : 'border-blue-500/30 focus:border-blue-500'}
+                  `}
                 />
               </div>
 
               {/* Type Filter */}
               <Select value={filterType} onValueChange={(v) => setFilterType(v as any)}>
-                <SelectTrigger className="w-full lg:w-40">
-                  <SelectValue placeholder="Jenis" />
+                <SelectTrigger className={`
+                  w-full lg:w-40 font-mono bg-muted/50 border
+                  ${theme === 'dark' 
+                    ? 'border-green-500/30 focus:border-green-500' 
+                    : 'border-blue-500/30 focus:border-blue-500'}
+                `}>
+                  <SelectValue placeholder={typeLabels.all} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Jenis</SelectItem>
-                  <SelectItem value="income">Pemasukan</SelectItem>
-                  <SelectItem value="expense">Pengeluaran</SelectItem>
+                  <SelectItem value="all" className="font-mono">{typeLabels.all}</SelectItem>
+                  <SelectItem value="income" className="font-mono text-green-500">{typeLabels.income}</SelectItem>
+                  <SelectItem value="expense" className="font-mono text-red-500">{typeLabels.expense}</SelectItem>
                 </SelectContent>
               </Select>
 
               {/* Category Filter */}
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-full lg:w-48">
-                  <SelectValue placeholder="Kategori" />
+                <SelectTrigger className={`
+                  w-full lg:w-48 font-mono bg-muted/50 border
+                  ${theme === 'dark' 
+                    ? 'border-green-500/30 focus:border-green-500' 
+                    : 'border-blue-500/30 focus:border-blue-500'}
+                `}>
+                  <SelectValue placeholder={language === 'id' ? 'Semua Kategori' : 'All Categories'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Kategori</SelectItem>
+                  <SelectItem value="all" className="font-mono">{language === 'id' ? 'Semua Kategori' : 'All Categories'}</SelectItem>
                   {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name}>
+                    <SelectItem key={cat.id} value={cat.name} className="font-mono">
                       {cat.name}
                     </SelectItem>
                   ))}
@@ -203,81 +260,103 @@ const Transactions: React.FC = () => {
 
               {/* Period Filter */}
               <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-                <SelectTrigger className="w-full lg:w-40">
-                  <SelectValue placeholder="Periode" />
+                <SelectTrigger className={`
+                  w-full lg:w-40 font-mono bg-muted/50 border
+                  ${theme === 'dark' 
+                    ? 'border-green-500/30 focus:border-green-500' 
+                    : 'border-blue-500/30 focus:border-blue-500'}
+                `}>
+                  <SelectValue placeholder={periodLabels.all} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Waktu</SelectItem>
-                  <SelectItem value="today">Hari Ini</SelectItem>
-                  <SelectItem value="week">7 Hari Terakhir</SelectItem>
-                  <SelectItem value="month">Bulan Ini</SelectItem>
-                  <SelectItem value="year">Tahun Ini</SelectItem>
+                  {Object.entries(periodLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key} className="font-mono">{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             {hasFilters && (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="gap-1">
-                  <Filter className="h-3 w-3" />
-                  {filteredTransactions.length} hasil
-                </Badge>
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-6 px-2">
+              <div className="flex items-center gap-2 pt-2 border-t border-border">
+                <TerminalBadge variant="default">
+                  <Filter className="h-3 w-3 mr-1" />
+                  {filteredTransactions.length} {language === 'id' ? 'hasil' : 'results'}
+                </TerminalBadge>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearFilters} 
+                  className="h-6 px-2 font-mono text-xs"
+                >
                   <X className="h-3 w-3 mr-1" />
-                  Hapus Filter
+                  {language === 'id' ? 'Hapus Filter' : 'Clear Filters'}
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </TerminalCard>
 
-        {/* Transactions List */}
+        {/* Transactions List - Terminal Style */}
         <div className="space-y-3">
           {loading ? (
-            // Loading skeletons
             [...Array(5)].map((_, i) => (
-              <Card key={i} className="border-border/50">
-                <CardContent className="p-4">
-                  <div className="h-16 bg-muted rounded animate-pulse" />
-                </CardContent>
-              </Card>
+              <TerminalCard key={i} title={`loading_${i}`} delay={i * 50}>
+                <div className="h-16 bg-muted/50 rounded animate-pulse" />
+              </TerminalCard>
             ))
           ) : filteredTransactions.length === 0 ? (
-            <Card className="border-border/50">
-              <CardContent className="p-12 text-center">
-                <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <Search className="h-8 w-8 text-muted-foreground" />
+            <TerminalCard title="empty_state" delay={200}>
+              <div className="p-12 text-center">
+                <div className={`
+                  mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4
+                  ${theme === 'dark' ? 'bg-green-500/10' : 'bg-blue-500/10'}
+                `}>
+                  <Search className={`
+                    h-8 w-8 
+                    ${theme === 'dark' ? 'text-green-500/50' : 'text-blue-500/50'}
+                  `} />
                 </div>
-                <h3 className="text-lg font-medium mb-1">Tidak ada transaksi</h3>
-                <p className="text-muted-foreground mb-4">
+                <h3 className="text-lg font-mono font-medium mb-1">
+                  [404] {language === 'id' ? 'Tidak ada transaksi' : 'No transactions found'}
+                </h3>
+                <p className="text-muted-foreground font-mono text-sm mb-4">
                   {hasFilters
-                    ? 'Coba ubah filter pencarian Anda'
-                    : 'Mulai dengan menambahkan transaksi pertama Anda'}
+                    ? (language === 'id' ? 'Coba ubah filter pencarian Anda' : 'Try changing your search filters')
+                    : (language === 'id' ? 'Mulai dengan menambahkan transaksi pertama Anda' : 'Start by adding your first transaction')}
                 </p>
                 {!hasFilters && (
-                  <Button onClick={() => navigate('/transactions/new')}>
+                  <TerminalButton onClick={() => navigate('/transactions/new')}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Tambah Transaksi
-                  </Button>
+                    {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
+                  </TerminalButton>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </TerminalCard>
           ) : (
-            filteredTransactions.map((transaction) => (
-              <Card
+            filteredTransactions.map((transaction, index) => (
+              <div
                 key={transaction.id}
-                className="border-border/50 hover:border-primary/50 transition-colors"
+                onClick={() => navigate(`/transactions/edit/${transaction.id}`)}
+                className="cursor-pointer"
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
+                <TerminalCard
+                  title={`${transaction.type}_${index}`}
+                  delay={index * 50}
+                  className="hover:border-primary/50 transition-colors"
+                >
+                  <div className="flex items-center justify-between p-2">
                     <div className="flex items-center gap-4">
-                      <div
-                        className={`p-3 rounded-lg ${
-                          transaction.type === 'income'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-red-100 text-red-600'
-                        }`}
-                      >
+                      <div className={`
+                        p-3 rounded-lg 
+                        ${transaction.type === 'income'
+                          ? (theme === 'dark' 
+                            ? 'bg-green-500/10 text-green-400 border border-green-500/30' 
+                            : 'bg-green-500/10 text-green-600 border border-green-500/30')
+                          : (theme === 'dark' 
+                            ? 'bg-red-500/10 text-red-400 border border-red-500/30' 
+                            : 'bg-red-500/10 text-red-600 border border-red-500/30')
+                        }
+                      `}>
                         {transaction.type === 'income' ? (
                           <TrendingUp className="h-5 w-5" />
                         ) : (
@@ -285,42 +364,57 @@ const Transactions: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{transaction.category}</span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold font-mono">{transaction.category}</span>
                           <Badge
                             variant={transaction.type === 'income' ? 'default' : 'destructive'}
-                            className="text-xs"
+                            className={`
+                              text-xs font-mono
+                              ${transaction.type === 'income' 
+                                ? 'bg-green-500/20 text-green-500 hover:bg-green-500/30' 
+                                : 'bg-red-500/20 text-red-500 hover:bg-red-500/30'}
+                            `}
                           >
-                            {transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                            {transaction.type === 'income' 
+                              ? (language === 'id' ? 'Pemasukan' : 'Income') 
+                              : (language === 'id' ? 'Pengeluaran' : 'Expense')}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{formatDate(transaction.date)}</p>
+                        <p className="text-sm text-muted-foreground font-mono">
+                          {formatDateLang(transaction.date)}
+                        </p>
                         {transaction.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{transaction.description}</p>
+                          <p className="text-sm text-muted-foreground mt-1 font-mono opacity-70">
+                            {transaction.description}
+                          </p>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span
-                        className={`text-lg font-bold ${
-                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
+                      <span className={`
+                        text-lg font-bold font-mono
+                        ${transaction.type === 'income' ? 'text-green-500' : 'text-red-500'}
+                      `}>
                         {transaction.type === 'income' ? '+' : '-'}
-                        {formatRupiah(transaction.amount)}
+                        {formatCurrency(transaction.amount)}
                       </span>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate(`/transactions/edit/${transaction.id}`)}
+                          className={`
+                            ${theme === 'dark' 
+                              ? 'hover:bg-green-500/10 hover:text-green-400' 
+                              : 'hover:bg-blue-500/10 hover:text-blue-500'}
+                          `}
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-500 hover:text-red-600"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                           onClick={() => {
                             setTransactionToDelete(transaction);
                             setDeleteDialogOpen(true);
@@ -331,8 +425,8 @@ const Transactions: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </TerminalCard>
+              </div>
             ))
           )}
         </div>
@@ -340,17 +434,31 @@ const Transactions: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className={`
+          border
+          ${theme === 'dark' 
+            ? 'border-red-500/30 bg-slate-900' 
+            : 'border-red-500/30'}
+        `}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.
+            <AlertDialogTitle className="font-mono">
+              {language === 'id' ? 'Hapus Transaksi' : 'Delete Transaction'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-mono">
+              {language === 'id' 
+                ? 'Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.'
+                : 'Are you sure you want to delete this transaction? This action cannot be undone.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
-              Hapus
+            <AlertDialogCancel className="font-mono">
+              {language === 'id' ? 'Batal' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-red-500 hover:bg-red-600 font-mono"
+            >
+              {language === 'id' ? 'Hapus' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

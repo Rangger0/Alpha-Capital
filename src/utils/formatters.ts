@@ -1,4 +1,4 @@
-// utils/formatters.ts - VERSI BERSIH & LENGKAP
+// src/utils/formatters.ts
 
 export const formatRupiah = (amount: number): string => {
   return new Intl.NumberFormat('id-ID', {
@@ -9,62 +9,104 @@ export const formatRupiah = (amount: number): string => {
   }).format(amount);
 };
 
-export const formatCompactNumber = (amount: number): string => {
-  if (amount >= 1000000000) {
-    return `Rp${(amount / 1000000000).toFixed(1)}M`;
-  }
-  if (amount >= 1000000) {
-    return `Rp${(amount / 1000000).toFixed(1)}jt`;
-  }
-  if (amount >= 1000) {
-    return `Rp${(amount / 1000).toFixed(0)}k`;
-  }
-  return `Rp${amount}`;
+export const formatUSD = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 };
 
-export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('id-ID').format(num);
+// Format berdasarkan currency yang dipilih
+export const formatCurrency = (amount: number, currency: 'IDR' | 'USD' = 'IDR'): string => {
+  if (currency === 'USD') {
+    return formatUSD(amount);
+  }
+  return formatRupiah(amount);
 };
 
-export const formatDate = (date: string | Date): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
+// Konversi IDR ke USD (rate bisa diupdate)
+const IDR_TO_USD_RATE = 0.000061; // 1 IDR = 0.000061 USD (approx)
+
+export const convertToUSD = (amountIDR: number): number => {
+  return amountIDR * IDR_TO_USD_RATE;
+};
+
+export const convertToIDR = (amountUSD: number): number => {
+  return amountUSD / IDR_TO_USD_RATE;
+};
+
+export const formatCompactNumber = (value: number): string => {
+  return Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value);
+};
+
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
   return new Intl.DateTimeFormat('id-ID', {
     day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(d);
-};
-
-export const formatShortDate = (date: string | Date): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'short',
-  }).format(d);
-};
-
-export const formatMonthYear = (date: Date): string => {
-  return new Intl.DateTimeFormat('id-ID', {
     month: 'long',
     year: 'numeric',
   }).format(date);
 };
 
-export const getMonthName = (monthIndex: number): string => {
+export const formatDateEN = (dateString: string): string => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+};
+
+// Input formatters - TAMBAH INI
+export const formatCurrencyInput = (value: string, currency: 'IDR' | 'USD' = 'IDR'): string => {
+  const number = value.replace(/[^\d]/g, '');
+  if (!number) return '';
+  
+  if (currency === 'USD') {
+    // Format dengan decimal untuk USD (cents)
+    const num = parseInt(number);
+    return (num / 100).toFixed(2);
+  }
+  
+  // Format IDR tanpa decimal
+  return new Intl.NumberFormat('id-ID').format(parseInt(number));
+};
+
+export const parseCurrencyInput = (value: string, currency: 'IDR' | 'USD' = 'IDR'): number => {
+  if (currency === 'USD') {
+    // Parse decimal untuk USD
+    return parseFloat(value.replace(/[^\d.]/g, '')) || 0;
+  }
+  // Parse integer untuk IDR
+  return parseInt(value.replace(/[^\d]/g, '')) || 0;
+};
+
+// Keep backward compatibility
+export const formatRupiahInput = (value: string): string => {
+  return formatCurrencyInput(value, 'IDR');
+};
+
+export const parseRupiahInput = (value: string): number => {
+  return parseCurrencyInput(value, 'IDR');
+};
+
+export const getMonthName = (month: number): string => {
   const months = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
-  return months[monthIndex];
+  return months[month];
 };
 
-export const parseRupiahInput = (value: string): number => {
-  const cleanValue = value.replace(/[^\d]/g, '');
-  return parseInt(cleanValue, 10) || 0;
-};
-
-export const formatRupiahInput = (value: string): string => {
-  const num = parseRupiahInput(value);
-  if (num === 0) return '';
-  return new Intl.NumberFormat('id-ID').format(num);
+export const getMonthNameEN = (month: number): string => {
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  return months[month];
 };

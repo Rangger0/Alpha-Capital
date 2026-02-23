@@ -1,13 +1,14 @@
+// src/pages/TransactionForm.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, FileText, DollarSign } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { addTransaction, updateTransaction, getTransactions, getCategories, addCategory } from '@/lib/supabase';
-import { formatRupiahInput, parseRupiahInput } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
@@ -24,6 +25,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  TerminalCard,
+  TerminalButton,
+  TerminalPrompt,
+  TerminalText,
+} from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
 
 const TransactionForm: React.FC = () => {
@@ -31,6 +38,8 @@ const TransactionForm: React.FC = () => {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const { language, formatCurrency } = useLanguage();
   const isEdit = Boolean(id);
 
   const [type, setType] = useState<'income' | 'expense'>('expense');
@@ -84,8 +93,8 @@ const TransactionForm: React.FC = () => {
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatRupiahInput(e.target.value);
-    setAmount(formatted);
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setAmount(value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,18 +102,18 @@ const TransactionForm: React.FC = () => {
     setError('');
 
     if (!user) {
-      setError('Anda harus login terlebih dahulu');
+      setError(language === 'id' ? 'Anda harus login terlebih dahulu' : 'You must be logged in');
       return;
     }
 
     if (!category) {
-      setError('Pilih atau buat kategori terlebih dahulu');
+      setError(language === 'id' ? 'Pilih atau buat kategori terlebih dahulu' : 'Please select or create a category');
       return;
     }
 
-    const amountValue = parseRupiahInput(amount);
+    const amountValue = parseInt(amount) || 0;
     if (amountValue <= 0) {
-      setError('Nominal harus lebih dari 0');
+      setError(language === 'id' ? 'Nominal harus lebih dari 0' : 'Amount must be greater than 0');
       return;
     }
 
@@ -130,7 +139,7 @@ const TransactionForm: React.FC = () => {
 
       navigate('/transactions');
     } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
+      setError(err.message || (language === 'id' ? 'Terjadi kesalahan. Silakan coba lagi.' : 'An error occurred. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -157,88 +166,140 @@ const TransactionForm: React.FC = () => {
     }
   };
 
+  const currencySymbol = language === 'id' ? 'Rp' : '$';
+
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/transactions')}>
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header - Terminal Style */}
+        <div className="flex items-center gap-4 pb-4 border-b border-border/50">
+          <TerminalButton 
+            variant="ghost" 
+         
+            onClick={() => navigate('/transactions')}
+            glow={false}
+          >
             <ArrowLeft className="h-5 w-5" />
-          </Button>
+          </TerminalButton>
           <div>
-            <h1 className="text-2xl font-bold">{isEdit ? 'Edit Transaksi' : 'Tambah Transaksi'}</h1>
-            <p className="text-muted-foreground">
-              {isEdit ? 'Perbarui detail transaksi' : 'Catat transaksi baru'}
+            <TerminalPrompt 
+              command={isEdit ? `transactions --edit --id=${id}` : 'transactions --new'} 
+              className="mb-2"
+            />
+            <h1 className="text-3xl font-bold tracking-tight">
+              <TerminalText 
+                text={isEdit 
+                  ? (language === 'id' ? 'Edit Transaksi' : 'Edit Transaction')
+                  : (language === 'id' ? 'Tambah Transaksi' : 'Add Transaction')
+                } 
+                typing 
+                delay={100}
+                className={theme === 'dark' ? 'text-green-400' : 'text-blue-500'}
+              />
+            </h1>
+            <p className="text-muted-foreground mt-1 font-mono text-sm">
+              {isEdit 
+                ? (language === 'id' ? 'Perbarui detail transaksi' : 'Update transaction details')
+                : (language === 'id' ? 'Catat transaksi baru' : 'Record new transaction')
+              }
             </p>
           </div>
         </div>
 
-        <Card className="border-border/50">
-          <CardContent className="p-6">
+        <TerminalCard 
+          title="transaction_form" 
+          subtitle={language === 'id' ? 'isi_detail_transaksi' : 'fill_transaction_details'}
+          delay={200}
+        >
+          <div className="p-6">
             {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertDescription>{error}</AlertDescription>
+              <Alert variant="destructive" className="mb-6 border-red-500/50">
+                <AlertDescription className="font-mono">{error}</AlertDescription>
               </Alert>
             )}
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Type Selection */}
               <div className="space-y-2">
-                <Label>Jenis Transaksi</Label>
+                <Label className="font-mono text-sm">
+                  {language === 'id' ? 'Jenis Transaksi' : 'Transaction Type'}
+                </Label>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
                     onClick={() => setType('income')}
-                    className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
-                      type === 'income'
-                        ? 'border-green-500 bg-green-50 text-green-700'
+                    className={`
+                      p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2
+                      ${type === 'income'
+                        ? (theme === 'dark' 
+                          ? 'border-green-500 bg-green-500/10 text-green-400' 
+                          : 'border-green-500 bg-green-50 text-green-700')
                         : 'border-border hover:border-green-200'
-                    }`}
+                      }
+                    `}
                   >
-                    <div
-                      className={`p-2 rounded-full ${
-                        type === 'income' ? 'bg-green-500 text-white' : 'bg-muted'
-                      }`}
-                    >
+                    <div className={`
+                      p-2 rounded-full
+                      ${type === 'income' 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-muted'}
+                    `}>
                       <DollarSign className="h-5 w-5" />
                     </div>
-                    <span className="font-medium">Pemasukan</span>
+                    <span className="font-medium font-mono">
+                      {language === 'id' ? 'Pemasukan' : 'Income'}
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setType('expense')}
-                    className={`p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
-                      type === 'expense'
-                        ? 'border-red-500 bg-red-50 text-red-700'
+                    className={`
+                      p-4 rounded-lg border-2 transition-all flex flex-col items-center gap-2
+                      ${type === 'expense'
+                        ? (theme === 'dark' 
+                          ? 'border-red-500 bg-red-500/10 text-red-400' 
+                          : 'border-red-500 bg-red-50 text-red-700')
                         : 'border-border hover:border-red-200'
-                    }`}
+                      }
+                    `}
                   >
-                    <div
-                      className={`p-2 rounded-full ${
-                        type === 'expense' ? 'bg-red-500 text-white' : 'bg-muted'
-                      }`}
-                    >
+                    <div className={`
+                      p-2 rounded-full
+                      ${type === 'expense' 
+                        ? 'bg-red-500 text-white' 
+                        : 'bg-muted'}
+                    `}>
                       <DollarSign className="h-5 w-5" />
                     </div>
-                    <span className="font-medium">Pengeluaran</span>
+                    <span className="font-medium font-mono">
+                      {language === 'id' ? 'Pengeluaran' : 'Expense'}
+                    </span>
                   </button>
                 </div>
               </div>
 
-              {/* Amount - NOMINAL */}
+              {/* Amount */}
               <div className="space-y-2">
-                <Label htmlFor="amount">Nominal</Label>
+                <Label htmlFor="amount" className="font-mono text-sm">
+                  {language === 'id' ? 'Nominal' : 'Amount'}
+                </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                    Rp
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-mono font-bold">
+                    {currencySymbol}
                   </span>
                   <Input
                     id="amount"
                     type="text"
+                    inputMode="numeric"
                     placeholder="0"
                     value={amount}
                     onChange={handleAmountChange}
-                    className="pl-10 text-lg"
+                    className={`
+                      pl-10 text-lg font-mono bg-muted/50 border
+                      ${theme === 'dark' 
+                        ? 'border-green-500/30 focus:border-green-500' 
+                        : 'border-blue-500/30 focus:border-blue-500'}
+                    `}
                     required
                   />
                 </div>
@@ -246,22 +307,29 @@ const TransactionForm: React.FC = () => {
 
               {/* Category */}
               <div className="space-y-2">
-                <Label>Kategori</Label>
+                <Label className="font-mono text-sm">
+                  {language === 'id' ? 'Kategori' : 'Category'}
+                </Label>
                 <div className="flex gap-2">
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Pilih kategori" />
+                    <SelectTrigger className={`
+                      flex-1 font-mono bg-muted/50 border
+                      ${theme === 'dark' 
+                        ? 'border-green-500/30 focus:border-green-500' 
+                        : 'border-blue-500/30 focus:border-blue-500'}
+                    `}>
+                      <SelectValue placeholder={language === 'id' ? 'Pilih kategori' : 'Select category'} />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.length === 0 ? (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Belum ada kategori
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center font-mono">
+                          {language === 'id' ? 'Belum ada kategori' : 'No categories yet'}
                         </div>
                       ) : (
                         categories
                           .filter((cat) => cat && typeof cat === 'string' && cat.trim() !== '')
                           .map((cat, index) => (
-                            <SelectItem key={`${cat}-${index}`} value={cat}>
+                            <SelectItem key={`${cat}-${index}`} value={cat} className="font-mono">
                               {cat}
                             </SelectItem>
                           ))
@@ -275,36 +343,52 @@ const TransactionForm: React.FC = () => {
                       setNewCategoryType(type);
                       setNewCategoryDialogOpen(true);
                     }}
+                    className="font-mono"
                   >
-                    + Baru
+                    + {language === 'id' ? 'Baru' : 'New'}
                   </Button>
                 </div>
               </div>
 
-              {/* Date - Simple Input */}
+              {/* Date */}
               <div className="space-y-2">
-                <Label htmlFor="date">Tanggal</Label>
+                <Label htmlFor="date" className="font-mono text-sm">
+                  {language === 'id' ? 'Tanggal' : 'Date'}
+                </Label>
                 <Input
                   id="date"
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="text-lg"
+                  className={`
+                    text-lg font-mono bg-muted/50 border
+                    ${theme === 'dark' 
+                      ? 'border-green-500/30 focus:border-green-500' 
+                      : 'border-blue-500/30 focus:border-blue-500'}
+                  `}
                   required
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description">Deskripsi (Opsional)</Label>
+                <Label htmlFor="description" className="font-mono text-sm">
+                  {language === 'id' ? 'Deskripsi (Opsional)' : 'Description (Optional)'}
+                </Label>
                 <div className="relative">
                   <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Tambahkan keterangan..."
-                    className="w-full min-h-[100px] px-10 py-2 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                    placeholder={language === 'id' ? 'Tambahkan keterangan...' : 'Add notes...'}
+                    className={`
+                      w-full min-h-[100px] px-10 py-2 rounded-md border bg-background text-sm font-mono
+                      ${theme === 'dark' 
+                        ? 'border-green-500/30 focus:border-green-500 focus:ring-1 focus:ring-green-500' 
+                        : 'border-blue-500/30 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'}
+                      placeholder:text-muted-foreground outline-none resize-none
+                    `}
                   />
                 </div>
               </div>
@@ -314,60 +398,108 @@ const TransactionForm: React.FC = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 font-mono"
                   onClick={() => navigate('/transactions')}
                 >
-                  Batal
+                  {language === 'id' ? 'Batal' : 'Cancel'}
                 </Button>
-                <Button type="submit" className="flex-1" disabled={loading}>
-                  {loading ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Simpan Transaksi'}
-                </Button>
+                <TerminalButton 
+                  type="submit" 
+                  className="flex-1"
+                  disabled={loading}
+                  glow
+                >
+                  {loading 
+                    ? (language === 'id' ? 'Menyimpan...' : 'Saving...') 
+                    : isEdit 
+                      ? (language === 'id' ? 'Simpan Perubahan' : 'Save Changes')
+                      : (language === 'id' ? 'Simpan Transaksi' : 'Save Transaction')
+                  }
+                </TerminalButton>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </TerminalCard>
       </div>
 
       {/* New Category Dialog */}
       <Dialog open={newCategoryDialogOpen} onOpenChange={setNewCategoryDialogOpen}>
-        <DialogContent>
+        <DialogContent className={`
+          border
+          ${theme === 'dark' 
+            ? 'border-green-500/30 bg-slate-900' 
+            : 'border-blue-500/30'}
+        `}>
           <DialogHeader>
-            <DialogTitle>Tambah Kategori Baru</DialogTitle>
-            <DialogDescription>Buat kategori baru untuk transaksi Anda.</DialogDescription>
+            <DialogTitle className="font-mono">
+              {language === 'id' ? 'Tambah Kategori Baru' : 'Add New Category'}
+            </DialogTitle>
+            <DialogDescription className="font-mono">
+              {language === 'id' 
+                ? 'Buat kategori baru untuk transaksi Anda.'
+                : 'Create a new category for your transactions.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="new-category">Nama Kategori</Label>
+              <Label htmlFor="new-category" className="font-mono">
+                {language === 'id' ? 'Nama Kategori' : 'Category Name'}
+              </Label>
               <Input
                 id="new-category"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Contoh: Makanan, Transport, Gaji"
+                placeholder={language === 'id' ? 'Contoh: Makanan, Transport, Gaji' : 'e.g., Food, Transport, Salary'}
+                className={`
+                  font-mono bg-muted/50 border
+                  ${theme === 'dark' 
+                    ? 'border-green-500/30 focus:border-green-500' 
+                    : 'border-blue-500/30 focus:border-blue-500'}
+                `}
               />
             </div>
             <div className="space-y-2">
-              <Label>Jenis</Label>
+              <Label className="font-mono">
+                {language === 'id' ? 'Jenis' : 'Type'}
+              </Label>
               <Select
                 value={newCategoryType}
                 onValueChange={(v) => setNewCategoryType(v as 'income' | 'expense')}
               >
-                <SelectTrigger>
+                <SelectTrigger className={`
+                  font-mono bg-muted/50 border
+                  ${theme === 'dark' 
+                    ? 'border-green-500/30 focus:border-green-500' 
+                    : 'border-blue-500/30 focus:border-blue-500'}
+                `}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="income">Pemasukan</SelectItem>
-                  <SelectItem value="expense">Pengeluaran</SelectItem>
+                  <SelectItem value="income" className="font-mono text-green-500">
+                    {language === 'id' ? 'Pemasukan' : 'Income'}
+                  </SelectItem>
+                  <SelectItem value="expense" className="font-mono text-red-500">
+                    {language === 'id' ? 'Pengeluaran' : 'Expense'}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setNewCategoryDialogOpen(false)}>
-              Batal
+            <Button 
+              variant="outline" 
+              onClick={() => setNewCategoryDialogOpen(false)}
+              className="font-mono"
+            >
+              {language === 'id' ? 'Batal' : 'Cancel'}
             </Button>
-            <Button onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
-              Tambah
-            </Button>
+            <TerminalButton 
+              onClick={handleAddCategory} 
+              disabled={!newCategoryName.trim()}
+              glow
+            >
+              {language === 'id' ? 'Tambah' : 'Add'}
+            </TerminalButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

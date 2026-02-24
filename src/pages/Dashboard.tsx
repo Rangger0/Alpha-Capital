@@ -21,7 +21,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   TerminalCard, 
-  TerminalText, 
+   
   TerminalPrompt,
   TerminalBadge,
   TerminalButton,
@@ -32,7 +32,7 @@ import {
   PieChart as RePieChart,
   Pie,
   Cell,
-  Tooltip,
+  
   ResponsiveContainer,
 } from 'recharts';
 

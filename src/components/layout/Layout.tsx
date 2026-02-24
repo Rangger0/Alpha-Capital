@@ -1,4 +1,3 @@
-// Layout.tsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -14,7 +13,6 @@ import {
   DollarSign,
   Menu,
   X,
-  ChevronDown,
   ExternalLink
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,12 +20,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,7 +47,7 @@ const socialLinks = [
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, currency, setCurrency } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -118,11 +110,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
        
       <header className={`
         sticky top-0 z-50 border-b backdrop-blur-lg
+        pt-6 sm:pt-7 md:pt-8
         ${theme === 'dark' 
           ? 'bg-black/80 border-slate-800' 
           : 'bg-white/80 border-slate-200'}
       `}>
-        <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+        <div className="flex items-center justify-between h-14 px-4 lg:px-6 pb-2">
           {/* Left: Logo & Title */}
           <div className="flex items-center gap-3">
             <button 
@@ -156,46 +149,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
 
-          {/* Right: Controls */}
+          {/* Right: Controls - Hanya Theme Toggle dan Logout */}
           <div className="flex items-center gap-2">
-            {/* Language Switcher */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className={`gap-2 font-mono ${theme === 'dark' ? 'text-amber-400 hover:text-amber-300' : 'text-amber-600 hover:text-amber-700'}`}>
-                  <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">{language === 'id' ? 'ID' : 'EN'}</span>
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className={theme === 'dark' ? 'bg-slate-800 border-slate-800' : 'bg-white border-slate-200'}>
-                <DropdownMenuItem onClick={() => setLanguage('id')} className={`font-mono ${theme === 'dark' ? 'text-amber-500 focus:bg-slate-800' : 'text-amber-600 focus:bg-slate-100'}`}>
-                  🇮🇩 Indonesia
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')} className={`font-mono ${theme === 'dark' ? 'text-amber-500 focus:bg-slate-800' : 'text-amber-600 focus:bg-slate-100'}`}>
-                  🇺🇸 English
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Currency Switcher */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className={`gap-2 font-mono ${theme === 'dark' ? 'text-amber-400 hover:text-amber-400' : 'text-amber-600 hover:text-amber-500'}`}>
-                  <DollarSign className="h-4 w-4" />
-                  <span className="hidden sm:inline">{currency}</span>
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className={theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}>
-                <DropdownMenuItem onClick={() => setCurrency('IDR')} className={`font-mono ${theme === 'dark' ? 'text-amber-400 focus:bg-slate-800' : 'text-amber-500 focus:bg-slate-100'}`}>
-                  🇮🇩 IDR (Rp)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCurrency('USD')} className={`font-mono ${theme === 'dark' ? 'text-amber-400 focus:bg-slate-800' : 'text-amber-500 focus:bg-slate-100'}`}>
-                  🇺🇸 USD ($)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             {/* Theme Toggle */}
             <Button 
               variant="ghost" 
@@ -223,7 +178,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Navigation Only */}
+        {/* Sidebar - Navigation + Language & Currency Cards */}
         <aside className={`
           fixed lg:static inset-y-0 left-0 z-40 w-64 border-r transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -231,8 +186,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             ? 'bg-black border-slate-800' 
             : 'bg-white border-slate-200'}
         `}>
-          {/* Mobile: Add padding top for header */}
-          <div className="lg:hidden h-16" />
+          {/* Mobile: Add padding top for header + status bar */}
+          <div className="lg:hidden h-24" />
           
           <nav className="p-4 space-y-1">
             {navItems.map((item) => {
@@ -269,6 +224,107 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               );
             })}
           </nav>
+
+          {/* Language & Currency Cards - Di bawah menu Reports */}
+          <div className="px-4 mt-6 space-y-3">
+            {/* Language Card */}
+            <div className={`
+              rounded-xl p-4 border transition-all
+              ${theme === 'dark' 
+                ? 'bg-slate-900/50 border-slate-800 hover:border-amber-500/50' 
+                : 'bg-slate-50 border-slate-200 hover:border-amber-400/50'}
+            `}>
+              <div className="flex items-center gap-2 mb-3">
+                <Globe className={`h-4 w-4 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`} />
+                <span className={`text-xs font-mono font-semibold uppercase ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {language === 'id' ? 'Bahasa' : 'Language'}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setLanguage('id')}
+                  className={`
+                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
+                    ${language === 'id'
+                      ? (theme === 'dark'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
+                      : (theme === 'dark'
+                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
+                    }
+                  `}
+                >
+                  🇮🇩 ID
+                </button>
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`
+                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
+                    ${language === 'en'
+                      ? (theme === 'dark'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
+                      : (theme === 'dark'
+                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
+                    }
+                  `}
+                >
+                  🇺🇸 EN
+                </button>
+              </div>
+            </div>
+
+            {/* Currency Card */}
+            <div className={`
+              rounded-xl p-4 border transition-all
+              ${theme === 'dark' 
+                ? 'bg-slate-900/50 border-slate-800 hover:border-amber-500/50' 
+                : 'bg-slate-50 border-slate-200 hover:border-amber-400/50'}
+            `}>
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className={`h-4 w-4 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`} />
+                <span className={`text-xs font-mono font-semibold uppercase ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {language === 'id' ? 'Mata Uang' : 'Currency'}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrency('IDR')}
+                  className={`
+                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
+                    ${currency === 'IDR'
+                      ? (theme === 'dark'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
+                      : (theme === 'dark'
+                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
+                    }
+                  `}
+                >
+                  🇮🇩 IDR
+                </button>
+                <button
+                  onClick={() => setCurrency('USD')}
+                  className={`
+                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
+                    ${currency === 'USD'
+                      ? (theme === 'dark'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
+                      : (theme === 'dark'
+                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
+                    }
+                  `}
+                >
+                  🇺🇸 USD
+                </button>
+              </div>
+            </div>
+          </div>
 
           {/* Mobile: Close button at bottom */}
           <div className="lg:hidden absolute bottom-4 left-4 right-4">

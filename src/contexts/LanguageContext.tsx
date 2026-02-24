@@ -24,7 +24,7 @@ interface LanguageContextType {
 const USD_TO_IDR_RATE = 16800;
 
 // Base currency aplikasi (data database tersimpan dalam IDR)
-const BASE_CURRENCY: Currency = 'IDR';
+export const BASE_CURRENCY: Currency = 'IDR';
 
 const translations = {
   id: {

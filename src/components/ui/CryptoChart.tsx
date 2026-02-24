@@ -106,7 +106,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   loading = false,
 }) => {
   const { theme } = useTheme();
-  const { formatCurrency, formatCompactNumber, currency } = useLanguage(); // ⬅️ AMBIL DARI CONTEXT
+  const { formatCurrency, formatCompactNumber } = useLanguage(); // ⬅️ AMBIL DARI CONTEXT
   const [hoveredData, setHoveredData] = useState<ChartData | null>(null);
   const themeColors = getThemeColors(theme);
 

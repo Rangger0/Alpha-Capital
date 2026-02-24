@@ -37,7 +37,7 @@ const TransactionForm: React.FC = () => {
   const id = params.id;
   const { user } = useAuth();
   const { theme } = useTheme();
-  const { language, formatCurrency } = useLanguage();
+  const { language, } = useLanguage();
   const isEdit = Boolean(id);
   const isDark = theme === 'dark';
 

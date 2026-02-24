@@ -22,7 +22,7 @@ export const TerminalCard: React.FC<TerminalCardProps> = memo(({
   title,
   subtitle,
   className = '',
-  delay,
+
   showHeader = true,
   glow = true,
   animate = true,

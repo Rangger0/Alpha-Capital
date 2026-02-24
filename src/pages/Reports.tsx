@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Download, FileText, TrendingUp, TrendingDown, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getTransactions } from '@/lib/supabase';
 import type { Transaction } from '@/types';
-import { formatDate, getMonthName } from '@/utils/formatters';
+import { getMonthName } from '@/utils/formatters';
 import Layout from '@/components/layout/Layout';
 import { CryptoChart } from '@/components/ui/CryptoChart';
 import {

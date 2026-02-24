@@ -30,8 +30,8 @@ export function PipesBackground() {
   const rafRef = useRef<number | undefined>(undefined);
 
   const colors = isDark 
-    ? ['#ffa200', '#ebeb2d', '#e94200', '#f3c576ef', '#f4e196']
-    : ['#3B82F6', '#60A5FA', '#2563EB', '#93C5FD', '#BFDBFE'];
+    ? ['#d1d1d1', '#b5b5b5', '#ffffff', '#cdcdcdef', '#ffffff']
+    : ['#616162', '#101417', '#000000', '#000000', '#4a4a4a'];
 
   const createPipe = useCallback((startX?: number, startY?: number): Pipe => ({
     x: startX ?? Math.random() * window.innerWidth,

@@ -10,12 +10,21 @@ interface LanguageContextType {
   setCurrency: (curr: Currency) => void;
   t: (key: string) => string;
   formatCurrency: (amount: number) => string;
+  formatCompactNumber: (amount: number) => string;
   formatDate: (date: Date | string) => string;
   convertAmount: (amount: number) => number;
+  getCurrencySymbol: () => string;
 }
 
-// Exchange rate (1 IDR to USD)
-const EXCHANGE_RATE = 0.000068;
+// ============================================
+// EXCHANGE RATE CONFIGURATION
+// ============================================
+
+// 1 USD = 15,800 IDR (update sesuai rate real-time)
+const USD_TO_IDR_RATE = 16800;
+
+// Base currency aplikasi (data database tersimpan dalam IDR)
+const BASE_CURRENCY: Currency = 'IDR';
 
 const translations = {
   id: {
@@ -230,37 +239,85 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return translations[language][key as keyof typeof translations.id] || key;
   }, [language]);
 
-  // Convert amount based on currency
+  
   const convertAmount = useCallback((amount: number): number => {
     if (currency === 'USD') {
-      return amount * EXCHANGE_RATE;
+      // IDR → USD (bagi dengan rate)
+      return amount / USD_TO_IDR_RATE;
     }
+    // Return IDR as-is
     return amount;
   }, [currency]);
 
-  // Format currency
-// Format currency - YANG BENAR
-const formatCurrency = useCallback((amount: number): string => {
-  // Convert dulu kalau USD
-  const convertedAmount = convertAmount(amount);
-  
-  if (currency === 'IDR') {
-    return new Intl.NumberFormat('id-ID', {
+  /**
+   * Get currency symbol
+   */
+  const getCurrencySymbol = useCallback((): string => {
+    return currency === 'IDR' ? 'Rp' : '$';
+  }, [currency]);
+
+  /**
+   * Format currency with proper symbol and decimals
+   */
+  const formatCurrency = useCallback((amount: number): string => {
+    const convertedAmount = convertAmount(amount);
+    
+    if (currency === 'IDR') {
+      // Format IDR: Rp 1.234.567 (tanpa desimal)
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(convertedAmount);
+    }
+    
+    // Format USD: $1,234.56 (dengan 2 desimal)
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(convertedAmount);
-  }
-  
-  // USD - 2 decimal untuk cents
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(convertedAmount);
-}, [currency, convertAmount]);
+  }, [currency, convertAmount]);
+
+  /**
+   * Format compact number (untuk chart/ringkasan)
+   * Contoh: 1.2M, 60K, 1.5B
+   */
+  const formatCompactNumber = useCallback((amount: number): string => {
+    const convertedAmount = convertAmount(amount);
+    
+    if (currency === 'IDR') {
+      // Untuk IDR, format dalam ribuan/miliaran
+      const absAmount = Math.abs(convertedAmount);
+      
+      if (absAmount >= 1_000_000_000) {
+        return (convertedAmount / 1_000_000_000).toFixed(1) + 'B';
+      }
+      if (absAmount >= 1_000_000) {
+        return (convertedAmount / 1_000_000).toFixed(1) + 'M';
+      }
+      if (absAmount >= 1_000) {
+        return (convertedAmount / 1_000).toFixed(1) + 'K';
+      }
+      return convertedAmount.toString();
+    }
+    
+    // Untuk USD, format dalam ribuan/miliaran
+    const absAmount = Math.abs(convertedAmount);
+    
+    if (absAmount >= 1_000_000_000) {
+      return '$' + (convertedAmount / 1_000_000_000).toFixed(1) + 'B';
+    }
+    if (absAmount >= 1_000_000) {
+      return '$' + (convertedAmount / 1_000_000).toFixed(1) + 'M';
+    }
+    if (absAmount >= 1_000) {
+      return '$' + (convertedAmount / 1_000).toFixed(1) + 'K';
+    }
+    return '$' + convertedAmount.toFixed(2);
+  }, [currency, convertAmount]);
 
   // Format date
   const formatDate = useCallback((date: Date | string): string => {
@@ -294,8 +351,10 @@ const formatCurrency = useCallback((amount: number): string => {
       setCurrency,
       t, 
       formatCurrency, 
+      formatCompactNumber,
       formatDate,
-      convertAmount
+      convertAmount,
+      getCurrencySymbol,
     }}>
       {children}
     </LanguageContext.Provider>

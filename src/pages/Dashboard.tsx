@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
         .slice(0, 5);
       setTopExpenses(topExp);
 
-      setRecentTransactions(allTransactions.slice(0, 5));
+      setRecentTransactions(allTransactions.slice(0,1));
 
     } catch (error) {
       console.error('Error loading dashboard:', error);

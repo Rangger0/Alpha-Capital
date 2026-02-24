@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ==========================================
 // Terminal Card Component
@@ -16,7 +17,7 @@ interface TerminalCardProps {
   animate?: boolean;
 }
 
-export const TerminalCard: React.FC<TerminalCardProps> = ({
+export const TerminalCard: React.FC<TerminalCardProps> = memo(({
   children,
   title,
   subtitle,
@@ -27,21 +28,29 @@ export const TerminalCard: React.FC<TerminalCardProps> = ({
   animate = true,
 }) => {
   const { theme } = useTheme();
+  const { currency } = useLanguage();
   const isDark = theme === 'dark';
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.01 });
+
+  const getStatusDotColor = () => {
+    if (isDark) {
+      return currency === 'IDR' ? '#EAB308' : '#3B82F6';
+    }
+    return currency === 'IDR' ? '#000000' : '#3B82F6';
+  };
 
   return (
     <div
       ref={animate ? ref : undefined}
       className={`
         relative overflow-hidden rounded-lg border backdrop-blur-sm
-        transition-all duration-500 ease-out
+        transition-[opacity,transform] duration-300 ease-out transform-gpu will-change-transform
         ${isDark 
           ? 'border-[#333333] bg-[#111111]' 
           : 'border-gray-200 bg-white shadow-sm'}
         ${glow && isDark ? 'shadow-[0_0_30px_rgba(255,165,2,0.1)]' : ''}
         ${glow && !isDark ? 'shadow-[0_0_30px_rgba(59,130,246,0.1)]' : ''}
-        ${animate ? (isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6') : ''}
+        ${animate ? (isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4') : ''}
         ${className}
       `}
     >
@@ -52,7 +61,6 @@ export const TerminalCard: React.FC<TerminalCardProps> = ({
             ? 'border-[#333333] bg-[#1a1a1a]' 
             : 'border-gray-200 bg-gray-50'}
         `}>
-          {/* Terminal Logo >_ */}
           <div className={`
             flex items-center justify-center w-10 h-6 rounded font-mono text-xs font-bold border
             ${isDark 
@@ -62,7 +70,6 @@ export const TerminalCard: React.FC<TerminalCardProps> = ({
             &gt;_
           </div>
 
-          {/* Title */}
           {title && (
             <div className="flex items-center gap-2">
               <span className={`
@@ -79,16 +86,13 @@ export const TerminalCard: React.FC<TerminalCardProps> = ({
             </div>
           )}
 
-          {/* ⬇️ STATUS DOT YANG DIMODIFIKASI ⬇️ */}
           <div className="ml-auto flex items-center gap-2">
             <div 
               className="w-2 h-2 rounded-full"
-              style={{ 
-                backgroundColor: isDark ? '#EAB308' : '#000000' // Kuning (dark), Hitam (light)
-              }}
+              style={{ backgroundColor: getStatusDotColor() }}
             />
-            {/* Tidak ada animate-pulse lagi */}
-            <span className={`text-[10px] font-mono ${isDark ? 'text-[#666666]' : 'text-gray-400'}`}>
+            <span className={`text-[10px] font-mono font-bold ${isDark ? 'text-[#666666]' : 'text-gray-400'}`}>
+              {currency}
             </span>
           </div>
         </div>
@@ -98,13 +102,14 @@ export const TerminalCard: React.FC<TerminalCardProps> = ({
         {children}
       </div>
 
-      {/* Scan line effect */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.01]">
         <div className="w-full h-full bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
       </div>
     </div>
   );
-};
+});
+
+TerminalCard.displayName = 'TerminalCard';
 
 // ==========================================
 // Terminal Text Component
@@ -121,10 +126,7 @@ interface TerminalTextProps {
 export const TerminalText: React.FC<TerminalTextProps> = ({
   text,
   className = '',
-  typing,
-  delay,
   prefix = '',
-  showCursor,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -152,7 +154,7 @@ interface TerminalPromptProps {
 
 export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
   command,
-  path = 'alpha_capital',
+  path = '',
   className = '',
 }) => {
   const { theme } = useTheme();
@@ -178,23 +180,20 @@ export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
 interface TerminalStatProps {
   label: string;
   value: string;
-  prefix?: string;
   trend?: string;
   trendUp?: boolean;
   loading?: boolean;
-  delay?: number;
 }
 
 export const TerminalStat: React.FC<TerminalStatProps> = ({
   label,
   value,
-  prefix = '$',
   trend,
   trendUp,
   loading = false,
-  delay,
 }) => {
   const { theme } = useTheme();
+  const { getCurrencySymbol } = useLanguage();
   const isDark = theme === 'dark';
 
   if (loading) {
@@ -210,7 +209,7 @@ export const TerminalStat: React.FC<TerminalStatProps> = ({
     <div className="space-y-1">
       <div className="flex items-center gap-2">
         <span className={`text-xs font-mono uppercase tracking-wider ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
-          {prefix} {label}
+          {getCurrencySymbol()} {label}
         </span>
         {trend && (
           <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
@@ -230,7 +229,7 @@ export const TerminalStat: React.FC<TerminalStatProps> = ({
 };
 
 // ==========================================
-// Terminal Badge Component (MODIFIED)
+// Terminal Badge Component
 // ==========================================
 interface TerminalBadgeProps {
   children: React.ReactNode;
@@ -251,24 +250,23 @@ export const TerminalBadge: React.FC<TerminalBadgeProps> = ({
       ? 'bg-[#1a1a1a] text-[#ffa502] border-[#333333]' 
       : 'bg-gray-100 text-blue-600 border-gray-200',
     success: isDark 
-      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30' // Kuning
-      : 'bg-yellow-100 text-yellow-700 border-yellow-200', // Kuning
+      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30'
+      : 'bg-yellow-100 text-yellow-700 border-yellow-200',
     warning: isDark 
       ? 'bg-[#ffa502]/10 text-[#ffa502] border-[#ffa502]/30' 
       : 'bg-yellow-100 text-yellow-600 border-yellow-200',
     danger: isDark 
-      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30' // Merah
-      : 'bg-blue-900 text-white border-blue-800', // Biru tua
+      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30'
+      : 'bg-blue-900 text-white border-blue-800',
     info: isDark 
       ? 'bg-[#3742fa]/10 text-[#3742fa] border-[#3742fa]/30' 
       : 'bg-blue-100 text-blue-600 border-blue-200',
-    // ⬇️ VARIAN BARU ⬇️
     income: isDark 
-      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30' // Kuning
-      : 'bg-yellow-100 text-yellow-700 border-yellow-200', // Kuning
+      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30'
+      : 'bg-yellow-100 text-yellow-700 border-yellow-200',
     expense: isDark 
-      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30' // Merah
-      : 'bg-blue-900 text-white border-blue-800', // Biru tua
+      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30'
+      : 'bg-blue-900 text-white border-blue-800',
   };
 
   return (

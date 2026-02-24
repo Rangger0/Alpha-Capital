@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 interface ThemeContextType {
   theme: 'light' | 'dark';
@@ -12,7 +12,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    // Cek localStorage atau system preference
     const saved = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initial = saved || (systemDark ? 'dark' : 'light');
@@ -20,7 +19,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Apply theme ke HTML
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
@@ -30,13 +28,29 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
+    const css = document.createElement('style');
+    css.textContent = `* { transition: none !important; }`;
+    document.head.appendChild(css);
+    
     setThemeState(prev => prev === 'light' ? 'dark' : 'light');
-  };
+    
+    setTimeout(() => {
+      document.head.removeChild(css);
+    }, 10);
+  }, []);
 
-  const setTheme = (newTheme: 'light' | 'dark') => {
+  const setTheme = useCallback((newTheme: 'light' | 'dark') => {
+    const css = document.createElement('style');
+    css.textContent = `* { transition: none !important; }`;
+    document.head.appendChild(css);
+    
     setThemeState(newTheme);
-  };
+    
+    setTimeout(() => {
+      document.head.removeChild(css);
+    }, 10);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

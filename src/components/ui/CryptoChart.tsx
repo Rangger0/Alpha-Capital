@@ -1,6 +1,7 @@
 // src/components/ui/CryptoChart.tsx
 import React, { useState, useMemo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext'; // ⬅️ TAMBAH INI
 import {
   ComposedChart,
   XAxis,
@@ -39,12 +40,10 @@ interface CryptoChartProps {
 
 // Warna tema
 const getThemeColors = (theme: string) => ({
-  // Dark mode: Merah bearish, Kuning bullish, Putih volume
-  // Light mode: Biru tua bearish, Biru muda bullish, Kuning volume
-  bullish: theme === 'dark' ? '#EAB308' : '#3987e6', // Kuning (dark) / Biru muda (light)
-  bearish: theme === 'dark' ? '#ff0303' : '#083ed1', // Merah (dark) / Biru tua (light)
-  volume: theme === 'dark' ? '#FFFFFF' : '#EAB308', // Putih (dark) / Kuning (light)
-  trend: theme === 'dark' ? '#ffffff' : '#030917', // Garis trend
+  bullish: theme === 'dark' ? '#EAB308' : '#3987e6',
+  bearish: theme === 'dark' ? '#ff0303' : '#083ed1',
+  volume: theme === 'dark' ? '#FFFFFF' : '#EAB308',
+  trend: theme === 'dark' ? '#ffffff' : '#030917',
   grid: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0, 0, 0, 0.02)',
 });
 
@@ -71,7 +70,6 @@ const CandlestickBar = (props: any) => {
   
   return (
     <g>
-      {/* Upper Wick */}
       <line
         x1={wickX}
         y1={wickTop}
@@ -80,7 +78,6 @@ const CandlestickBar = (props: any) => {
         stroke={color}
         strokeWidth={1}
       />
-      {/* Lower Wick */}
       <line
         x1={wickX}
         y1={bodyTop + bodyHeight}
@@ -89,7 +86,6 @@ const CandlestickBar = (props: any) => {
         stroke={color}
         strokeWidth={1}
       />
-      {/* Candle Body */}
       <rect
         x={candleX}
         y={bodyTop}
@@ -110,10 +106,10 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   loading = false,
 }) => {
   const { theme } = useTheme();
+  const { formatCurrency, formatCompactNumber, currency } = useLanguage(); // ⬅️ AMBIL DARI CONTEXT
   const [hoveredData, setHoveredData] = useState<ChartData | null>(null);
   const themeColors = getThemeColors(theme);
 
-  // Transform data for candlestick
   const candleData = useMemo(() => {
     return data.map((item, index) => {
       const prevClose = index > 0 ? data[index - 1].cumulative : item.cumulative;
@@ -155,10 +151,9 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   const priceChangePercent = previousPrice !== 0 ? (priceChange / Math.abs(previousPrice)) * 100 : 0;
   const isBullish = priceChange >= 0;
 
-  const formatCurrency = (val: number) => {
-    if (Math.abs(val) >= 1000000) return `$${(val / 1000000).toFixed(2)}JT`;
-    if (Math.abs(val) >= 1000) return `$${(val / 1000).toFixed(2)}K`;
-    return `$${val.toFixed(2)}`;
+  // ⬇️ GANTI FUNGSI INI - PAKAI DARI CONTEXT ⬇️
+  const formatChartValue = (val: number) => {
+    return formatCompactNumber(val);
   };
 
   const timeRangeButtons: { key: TimeRange; label: string }[] = [
@@ -191,7 +186,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div className="flex items-baseline gap-3">
           <span className="text-3xl font-bold font-mono tracking-tight">
-            {formatCurrency(currentPrice)}
+            {formatChartValue(currentPrice)}
           </span>
           <span 
             className="flex items-center font-mono text-sm"
@@ -232,7 +227,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               className="text-sm font-bold font-mono"
               style={{ color: themeColors.bullish }}
             >
-              {formatCurrency(stats.totalIncome)}
+              {formatChartValue(stats.totalIncome)}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-muted/30 border border-border">
@@ -241,7 +236,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               className="text-sm font-bold font-mono"
               style={{ color: themeColors.bearish }}
             >
-              {formatCurrency(stats.totalExpense)}
+              {formatChartValue(stats.totalExpense)}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-muted/30 border border-border">
@@ -250,7 +245,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               className="text-sm font-bold font-mono"
               style={{ color: stats.net >= 0 ? themeColors.bullish : themeColors.bearish }}
             >
-              {formatCurrency(stats.net)}
+              {formatChartValue(stats.net)}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-muted/30 border border-border">
@@ -259,7 +254,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               className="text-sm font-bold font-mono"
               style={{ color: stats.avgDaily >= 0 ? themeColors.bullish : themeColors.bearish }}
             >
-              {formatCurrency(stats.avgDaily)}
+              {formatChartValue(stats.avgDaily)}
             </p>
           </div>
         </div>
@@ -282,7 +277,6 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               </linearGradient>
             </defs>
 
-            {/* Grid */}
             <CartesianGrid 
               strokeDasharray="0" 
               stroke={themeColors.grid}
@@ -303,7 +297,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontFamily: 'JetBrains Mono' }} 
               axisLine={false}
               tickLine={false}
-              tickFormatter={(value) => formatCurrency(value)}
+              tickFormatter={(value) => formatChartValue(value)}
               domain={['auto', 'auto']}
             />
 
@@ -365,7 +359,6 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               }}
             />
 
-            {/* Area fill */}
             <Area
               yAxisId="left"
               type="monotone"
@@ -374,7 +367,6 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               fill="url(#colorArea)"
             />
 
-            {/* Trend Line */}
             <Line
               yAxisId="left"
               type="monotone"
@@ -385,7 +377,6 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               strokeOpacity={0.8}
             />
 
-            {/* Volume Bars - Warna putih (dark) atau kuning (light) */}
             <Bar
               yAxisId="right"
               dataKey="income"
@@ -403,7 +394,6 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
               radius={[2, 2, 0, 0]}
             />
 
-            {/* Candlestick Bars */}
             <Bar
               yAxisId="left"
               dataKey="high"
@@ -415,7 +405,6 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Footer Info */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
         <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
           <span className="flex items-center gap-1">

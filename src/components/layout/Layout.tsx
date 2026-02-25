@@ -149,14 +149,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
 
-          {/* Right: Controls - Hanya Theme Toggle dan Logout */}
-          <div className="flex items-center gap-2">
-            {/* Theme Toggle */}
+          {/* Right: Controls - Theme Toggle (moved right) and Logout */}
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle - Moved more to the right with margin */}
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={toggleTheme}
-              className={theme === 'dark' ? 'text-amber-400 hover:text-amber-300' : 'text-amber-400 hover:text-amber-500'}
+              className={`mr-2 ${theme === 'dark' ? 'text-amber-400 hover:text-amber-300' : 'text-amber-400 hover:text-amber-500'}`}
             >
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
@@ -326,8 +326,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
 
-          {/* Mobile: Close button at bottom */}
-          <div className="lg:hidden absolute bottom-4 left-4 right-4">
+          {/* Mobile: Logout Button - ABOVE Close button */}
+          <div className="lg:hidden absolute bottom-20 left-4 right-4 space-y-3">
+            {/* Logout Button - Now above Tutup Menu */}
+            <Button 
+              variant="outline" 
+              className={`w-full font-mono border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300`}
+              onClick={() => setLogoutDialogOpen(true)}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              {language === 'id' ? 'Keluar' : 'Logout'}
+            </Button>
+
+            {/* Close Menu Button - Now below Logout */}
             <Button 
               variant="outline" 
               className={`w-full font-mono ${theme === 'dark' ? 'border-slate-700 text-amber-400 hover:bg-slate-900' : 'border-slate-200 text-amber-600 hover:bg-slate-100'}`}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core'; // TAMBAHKAN INI
 
 import { 
   LayoutDashboard, 
@@ -52,6 +53,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { language, setLanguage, currency, setCurrency } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  // DETEKSI PLATFORM - TAMBAHKAN INI
+  const isNative = Capacitor.isNativePlatform();
 
   const navItems = [
     { path: '/dashboard', label: language === 'id' ? 'Dashboard' : 'Dashboard', icon: LayoutDashboard },
@@ -126,32 +130,39 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </button>
             
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-              {/* Logo dengan background transparan */}
-              <div className="relative w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
-                <img 
-                  src="/logo.png" 
-                  alt="Alpha Capital" 
-                  className="w-8 h-8 object-contain relative z-10"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚀</text></svg>';
-                  }}
-                />
-              </div>
-              <div className="hidden sm:block">
+              
+              {/* LOGO - Hanya tampil di WEB, hidden di Android/iOS */}
+              {!isNative && (
+                <div className="relative w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
+                  <img 
+                    src="/logo.png" 
+                    alt="Alpha Capital" 
+                    className="w-8 h-8 object-contain relative z-10"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚀</text></svg>';
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Title - Tampil di semua platform */}
+              <div className="flex flex-col">
                 <h1 className={`
                   font-bold text-lg leading-tight font-mono
                   ${theme === 'dark' ? 'text-amber-400' : 'text-amber-400'}
                 `}>
                   Alpha Capital
                 </h1>
-                <p className={`text-xs font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>v1.0.0</p>
+                <p className={`text-xs font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                  v1.0.0
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Right: Controls - Theme Toggle (moved right) and Logout */}
+          {/* Right: Controls - Theme Toggle and Logout */}
           <div className="flex items-center gap-3">
-            {/* Theme Toggle - Moved more to the right with margin */}
+            {/* Theme Toggle */}
             <Button 
               variant="ghost" 
               size="icon" 
@@ -161,12 +172,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
 
-            {/* Logout */}
+            {/* Logout - Hidden on mobile, show on desktop */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => setLogoutDialogOpen(true)}
-              className={`gap-2 font-mono ${theme === 'dark' ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : 'text-red-500 hover:text-red-600 hover:bg-red-50'}`}
+              className={`hidden lg:flex gap-2 font-mono ${theme === 'dark' ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : 'text-red-500 hover:text-red-600 hover:bg-red-50'}`}
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">

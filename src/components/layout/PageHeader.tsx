@@ -25,35 +25,35 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <section
       className={cn(
-        'rounded-[32px] border px-5 py-5 sm:px-6 sm:py-6',
+        'rounded-[28px] border px-4 py-4 sm:px-6 sm:py-5',
         isDark
-          ? 'border-white/10 bg-white/[0.02] text-white'
+          ? 'border-white/10 bg-[#0d0d0d] text-white'
           : 'border-slate-200 bg-white text-slate-950',
         className,
       )}
     >
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3 sm:gap-4">
           {leading && (
-            <div className="pt-1">
+            <div className="pt-0.5">
               {leading}
             </div>
           )}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {eyebrow && (
               <div className="flex items-center gap-2">
-                <span className={cn('h-2.5 w-2.5 rounded-full', isDark ? 'bg-amber-400' : 'bg-blue-600')} />
+                <span className={cn('h-2 w-2 rounded-full', isDark ? 'bg-amber-400' : 'bg-blue-600')} />
                 <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-amber-300' : 'text-blue-700')}>
                   {eyebrow}
                 </p>
               </div>
             )}
             <div>
-              <h1 className={cn('text-2xl font-semibold tracking-tight sm:text-3xl', isDark ? 'text-white' : 'text-slate-950')}>
+              <h1 className={cn('text-[2rem] font-semibold tracking-tight sm:text-3xl', isDark ? 'text-white' : 'text-slate-950')}>
                 {title}
               </h1>
               {subtitle && (
-                <p className={cn('mt-1.5 max-w-2xl text-sm sm:text-base', isDark ? 'text-zinc-400' : 'text-slate-600')}>
+                <p className={cn('mt-1 max-w-2xl text-sm leading-relaxed sm:text-base', isDark ? 'text-zinc-400' : 'text-slate-600')}>
                   {subtitle}
                 </p>
               )}
@@ -62,7 +62,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         </div>
 
         {action && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {action}
           </div>
         )}

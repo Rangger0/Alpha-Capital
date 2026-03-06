@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
 import PageHeader from '@/components/layout/PageHeader';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DayData {
   date: string;
@@ -29,6 +30,7 @@ const Calendar: React.FC = () => {
   const { theme } = useTheme();
   const { language, formatCurrency, formatDate: formatDateLang } = useLanguage();
   const isDark = theme === 'dark';
+  const isMobile = useIsMobile();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -148,12 +150,12 @@ const Calendar: React.FC = () => {
           eyebrow={`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
           title={language === 'id' ? 'Kalender' : 'Calendar'}
           subtitle={language === 'id' ? 'Lihat transaksi berdasarkan tanggal dengan tampilan yang lebih rapi di desktop dan mobile.' : 'Review transactions by date with a cleaner layout on desktop and mobile.'}
-          action={(
+          action={!isMobile ? (
             <TerminalButton onClick={() => navigate('/transactions/new')}>
               <Plus className="mr-2 h-4 w-4" />
               {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
             </TerminalButton>
-          )}
+          ) : undefined}
         />
 
         {/* Month Summary */}

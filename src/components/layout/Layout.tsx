@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  Plus,
   Sun,
   X,
 } from 'lucide-react';
@@ -43,6 +44,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const isDark = theme === 'dark';
   const isNative = Capacitor.isNativePlatform();
+  const showQuickAdd = !location.pathname.startsWith('/transactions/new') && !location.pathname.startsWith('/transactions/edit');
 
   const navItems = [
     { path: '/dashboard', label: language === 'id' ? 'Dashboard' : 'Dashboard', icon: LayoutDashboard },
@@ -59,12 +61,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const surfaceCard = isDark
-    ? 'border-white/10 bg-[#0b0b0b] text-white'
-    : 'border-white/70 bg-white/90 text-slate-950';
+    ? 'border-white/10 bg-[#101010] text-white'
+    : 'border-slate-200 bg-white text-slate-950 shadow-[0_12px_28px_rgba(148,163,184,0.12)]';
+  const sidebarShell = isDark
+    ? 'border-white/10 bg-[#050505] text-white shadow-[22px_0_60px_rgba(0,0,0,0.45)]'
+    : 'border-slate-200 bg-[#f6f8fc] text-slate-950 shadow-[22px_0_60px_rgba(148,163,184,0.18)]';
+  const topbarShell = isDark
+    ? 'border-white/10 bg-[#050505] shadow-[0_16px_36px_rgba(0,0,0,0.42)]'
+    : 'border-slate-200 bg-[#eef3fb] shadow-[0_12px_30px_rgba(148,163,184,0.18)]';
+  const sidebarSection = isDark
+    ? 'border-white/10 bg-[#111111]'
+    : 'border-slate-200 bg-white shadow-[0_16px_40px_rgba(148,163,184,0.12)]';
+  const mobileContentOffset = isNative
+    ? 'calc(4rem + env(safe-area-inset-top) + 0.75rem)'
+    : undefined;
 
   const sidebarBody = (
     <div
-      className="flex h-full flex-col px-4 pb-4 pt-4 sm:px-5"
+      className="flex min-h-full flex-col px-4 pb-6 pt-4 sm:px-5"
       style={{
         paddingTop: isNative ? 'max(1rem, env(safe-area-inset-top))' : undefined,
         paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
@@ -77,33 +91,33 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           setSidebarOpen(false);
         }}
         className={cn(
-          'flex items-center gap-3 rounded-[28px] border px-4 py-4 text-left transition-colors',
+          'flex items-center gap-2.5 rounded-[24px] border px-4 py-3.5 text-left transition-colors',
           surfaceCard,
         )}
       >
         <div
           className={cn(
-            'flex h-12 w-12 items-center justify-center rounded-2xl border',
-            isDark ? 'border-white/10 bg-white/[0.04]' : 'border-slate-200 bg-white',
+            'flex h-11 w-11 items-center justify-center rounded-[18px] border',
+            isDark ? 'border-white/10 bg-[#181818]' : 'border-slate-200 bg-slate-50',
           )}
         >
           <img src="/logo.png" alt="Alpha Capital" className="h-8 w-8 object-contain" />
         </div>
         <div className="min-w-0">
-          <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-amber-300' : 'text-blue-700')}>
+          <p className={cn('text-[11px] font-semibold uppercase tracking-[0.24em]', isDark ? 'text-amber-300' : 'text-blue-700')}>
             Alpha Capital
           </p>
           <p className={cn('mt-1 text-sm', isDark ? 'text-zinc-400' : 'text-slate-500')}>v1.0.0</p>
         </div>
       </button>
 
-      <div className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.02] p-3 dark:bg-white/[0.02]">
-        <div className="mb-3 px-2">
+      <div className={cn('mt-5 rounded-[24px] border p-2.5', sidebarSection)}>
+        <div className="mb-2.5 px-2">
           <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
             {language === 'id' ? 'Navigasi' : 'Navigation'}
           </p>
         </div>
-        <nav className="space-y-1.5">
+        <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -117,10 +131,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   setSidebarOpen(false);
                 }}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors',
+                  'flex w-full items-center gap-2.5 rounded-[20px] px-2.5 py-2.5 text-left transition-colors',
                   active
                     ? (isDark
-                        ? 'bg-amber-500/15 text-amber-300'
+                        ? 'bg-amber-500/18 text-amber-300'
                         : 'bg-blue-50 text-blue-700')
                     : (isDark
                         ? 'text-zinc-300 hover:bg-white/[0.04] hover:text-white'
@@ -129,16 +143,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <div
                   className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-2xl border',
+                    'flex h-9 w-9 items-center justify-center rounded-[16px] border',
                     active
                       ? (isDark ? 'border-amber-500/20 bg-amber-500/10' : 'border-blue-200 bg-white')
-                      : (isDark ? 'border-white/10 bg-white/[0.03]' : 'border-slate-200 bg-white'),
+                      : (isDark ? 'border-white/10 bg-[#181818]' : 'border-slate-200 bg-slate-50'),
                   )}
                 >
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{item.label}</p>
+                  <p className="truncate text-[13px] font-medium">{item.label}</p>
                 </div>
                 <span
                   className={cn(
@@ -239,12 +253,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </section>
       </div>
 
-      <div className="mt-auto space-y-3 pt-6">
+      <div className="mt-6 space-y-3 border-t border-black/5 pt-6 dark:border-white/10 lg:mt-auto">
         <button
           type="button"
           onClick={toggleTheme}
           className={cn(
-            'flex w-full items-center justify-between rounded-[24px] border px-4 py-3 text-left transition-colors',
+            'flex w-full items-center justify-between rounded-[20px] border px-4 py-3 text-left transition-colors',
             surfaceCard,
           )}
         >
@@ -270,10 +284,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           type="button"
           onClick={() => setLogoutDialogOpen(true)}
           className={cn(
-            'flex w-full items-center justify-between rounded-[24px] border px-4 py-3 text-left transition-colors',
+            'flex w-full items-center justify-between rounded-[20px] border px-4 py-3 text-left transition-colors',
             isDark
               ? 'border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/15'
-              : 'border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100',
+              : 'border-rose-200 bg-rose-50/95 text-rose-700 shadow-[0_12px_30px_rgba(251,113,133,0.14)] hover:bg-rose-100',
           )}
         >
           <div>
@@ -308,10 +322,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-[min(86vw,320px)] transform border-r transition-transform duration-200 ease-out lg:w-[280px] lg:translate-x-0',
-          isDark ? 'border-white/10 bg-[#070707]/96' : 'border-white/70 bg-[#edf2fa]/96',
+          'fixed inset-y-0 left-0 z-40 w-[min(86vw,320px)] transform overflow-y-auto overscroll-contain border-r transition-transform duration-200 ease-out lg:w-[280px] lg:translate-x-0',
+          sidebarShell,
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {sidebarBody}
       </aside>
@@ -325,16 +340,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
       )}
 
-      <div className="relative flex min-h-screen flex-col lg:pl-[280px]">
+      <div
+        className="relative flex min-h-screen flex-col pt-20 lg:pl-[280px] lg:pt-0"
+        style={{ paddingTop: mobileContentOffset }}
+      >
         <header
           className={cn(
-            'border-b px-4 sm:px-6 lg:px-8',
-            isDark ? 'border-white/10 bg-[#050505]' : 'border-white/70 bg-[#eef3fb]',
+            'fixed inset-x-0 top-0 z-20 border-b px-4 sm:px-6 lg:hidden',
+            topbarShell,
           )}
           style={{ paddingTop: isNative ? 'max(0.75rem, env(safe-area-inset-top))' : undefined }}
         >
           <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => setSidebarOpen((prev) => !prev)}
@@ -346,11 +364,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
 
-              <div>
-                <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
-                  Alpha Capital
-                </p>
-              </div>
+              {showQuickAdd && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/transactions/new')}
+                  className={cn(
+                    'inline-flex h-11 items-center gap-2 rounded-[20px] border px-4 text-sm font-semibold tracking-[0.08em] transition-colors',
+                    isDark
+                      ? 'border-amber-200/15 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-black shadow-[0_14px_34px_rgba(245,158,11,0.28)] hover:brightness-105'
+                      : 'border-blue-500/10 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 text-white shadow-[0_14px_34px_rgba(37,99,235,0.22)] hover:brightness-105',
+                  )}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>{language === 'id' ? 'Tambah' : 'Add'}</span>
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -368,7 +396,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        <main className="relative flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <main className="relative flex-1 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:py-8">
           <div className="mx-auto w-full max-w-[1440px]">
             {children}
           </div>

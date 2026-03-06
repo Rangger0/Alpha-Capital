@@ -4,9 +4,8 @@ import {
   Plus,
   Search,
   Filter,
-  TrendingUp,
-  TrendingDown,
-  Edit2,
+  ArrowDownLeft,
+  ArrowUpRight,
   Trash2,
   X,
 } from 'lucide-react';
@@ -17,7 +16,6 @@ import { getTransactions, deleteTransaction, getCategories } from '@/lib/supabas
 import type { Transaction, Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +38,7 @@ import {
   TerminalButton,
   TerminalBadge,
 } from '@/components/ui/TerminalCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Layout from '@/components/layout/Layout';
 import PageHeader from '@/components/layout/PageHeader';
 
@@ -49,6 +48,7 @@ const Transactions: React.FC = () => {
   const { theme } = useTheme();
   const { language, formatCurrency, formatDate: formatDateLang } = useLanguage();
   const isDark = theme === 'dark';
+  const isMobile = useIsMobile();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -164,12 +164,12 @@ const Transactions: React.FC = () => {
           eyebrow={language === 'id' ? 'Histori Keuangan' : 'Transaction History'}
           title={language === 'id' ? 'Transaksi' : 'Transactions'}
           subtitle={language === 'id' ? 'Kelola pemasukan dan pengeluaran dalam satu tampilan yang lebih rapi.' : 'Manage income and expenses in a cleaner single view.'}
-          action={(
+          action={!isMobile ? (
             <TerminalButton onClick={() => navigate('/transactions/new')}>
               <Plus className="mr-2 h-4 w-4" />
               {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
             </TerminalButton>
-          )}
+          ) : undefined}
         />
 
         {/* Filters */}
@@ -264,74 +264,113 @@ const Transactions: React.FC = () => {
         </TerminalCard>
 
         {/* Transactions List */}
-        <div className="space-y-3">
+        <TerminalCard
+          title={language === 'id' ? 'riwayat_transaksi' : 'transaction_history'}
+          subtitle={loading
+            ? (language === 'id' ? 'menyiapkan daftar transaksi' : 'preparing transaction list')
+            : `${filteredTransactions.length} ${language === 'id' ? 'transaksi siap dibuka' : 'transactions ready to open'}`}
+        >
           {loading ? (
-            [...Array(5)].map((_, i) => (
-              <TerminalCard key={i} title={`loading_${i}`}>
-                <div className={`h-16 rounded animate-pulse ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-200'}`} />
-              </TerminalCard>
-            ))
-          ) : filteredTransactions.length === 0 ? (
-            <TerminalCard title="empty_state">
-              <div className="p-12 text-center">
-                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-100'}`}>
-                  <Search className={`h-8 w-8 ${isDark ? 'text-[#ffa502]/50' : 'text-blue-500/50'}`} />
-                </div>
-                <h3 className={`text-lg font-mono font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {language === 'id' ? 'Tidak ada transaksi' : 'No transactions found'}
-                </h3>
-                <p className={`font-mono text-sm mb-4 ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-                  {hasFilters ? (language === 'id' ? 'Coba ubah filter pencarian Anda' : 'Try changing your search filters') : (language === 'id' ? 'Mulai dengan menambahkan transaksi pertama Anda' : 'Start by adding your first transaction')}
-                </p>
-                {!hasFilters && (
-                  <TerminalButton onClick={() => navigate('/transactions/new')}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
-                  </TerminalButton>
-                )}
-              </div>
-            </TerminalCard>
-          ) : (
-            filteredTransactions.map((transaction, index) => (
-              <div key={transaction.id} onClick={() => navigate(`/transactions/edit/${transaction.id}`)} className="cursor-pointer">
-                <TerminalCard title={`${transaction.type}_${index}`} className={isDark ? 'hover:border-[#ffa502]/50' : 'hover:border-blue-500/50'}>
-                  <div className="flex flex-col gap-4 p-1 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className={`mt-0.5 rounded-2xl border p-3 ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'} ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
-                        {transaction.type === 'income' ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <span className={`font-semibold font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</span>
-                          <Badge className={`text-xs font-mono ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/20 text-[#00d084] hover:bg-[#00d084]/30' : 'bg-green-100 text-green-600 hover:bg-green-200') : (isDark ? 'bg-[#ff4757]/20 text-[#ff4757] hover:bg-[#ff4757]/30' : 'bg-red-100 text-red-600 hover:bg-red-200')}`}>
-                            {transaction.type === 'income' ? (language === 'id' ? 'Pemasukan' : 'Income') : (language === 'id' ? 'Pengeluaran' : 'Expense')}
-                          </Badge>
-                        </div>
-                        <p className={`text-sm font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{formatDateLang(transaction.date)}</p>
-                        {transaction.description && (
-                          <p className={`mt-1 text-sm font-mono ${isDark ? 'text-[#555555]' : 'text-gray-400'}`}>{transaction.description}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-3 sm:items-end">
-                      <span className={`text-lg font-bold font-mono ${transaction.type === 'income' ? (isDark ? 'text-[#fde400]' : 'text-green-600') : (isDark ? 'text-[#ff6200]' : 'text-red-600')}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                      </span>
-                      <div className="flex gap-1 self-start sm:self-auto" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" onClick={() => navigate(`/transactions/edit/${transaction.id}`)} className={isDark ? 'text-[#a0a0a0] hover:text-[#ffa502] hover:bg-[#ffa502]/10' : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className={isDark ? 'text-[#ff4757] hover:text-[#ff6b6b] hover:bg-[#ff4757]/10' : 'text-red-500 hover:text-red-600 hover:bg-red-50'} onClick={() => { setTransactionToDelete(transaction); setDeleteDialogOpen(true); }}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+            <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-slate-200'}`}>
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 py-4">
+                  <div className={`h-12 w-12 rounded-[18px] animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
+                  <div className="flex-1 space-y-2">
+                    <div className={`h-4 w-32 rounded-full animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
+                    <div className={`h-3 w-44 rounded-full animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
                   </div>
-                </TerminalCard>
+                  <div className={`h-4 w-20 rounded-full animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
+                </div>
+              ))}
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`}>
+                <Search className={`h-8 w-8 ${isDark ? 'text-[#ffa502]/50' : 'text-blue-500/50'}`} />
               </div>
-            ))
+              <h3 className={`mb-1 text-lg font-mono font-medium ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                {language === 'id' ? 'Tidak ada transaksi' : 'No transactions found'}
+              </h3>
+              <p className={`mb-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-slate-500'}`}>
+                {hasFilters ? (language === 'id' ? 'Coba ubah filter pencarian Anda' : 'Try changing your search filters') : (language === 'id' ? 'Mulai dengan menambahkan transaksi pertama Anda' : 'Start by adding your first transaction')}
+              </p>
+              {!hasFilters && (
+                <TerminalButton onClick={() => navigate('/transactions/new')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
+                </TerminalButton>
+              )}
+            </div>
+          ) : (
+            <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-slate-200'}`}>
+              {filteredTransactions.map((transaction) => {
+                const isIncome = transaction.type === 'income';
+
+                return (
+                  <div key={transaction.id} className="flex items-center gap-3 py-4 first:pt-1 last:pb-1">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/transactions/edit/${transaction.id}`)}
+                      className="group flex min-w-0 flex-1 items-center gap-3 rounded-[24px] px-1 py-1 text-left transition-colors"
+                    >
+                      <div
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] border ${
+                          isIncome
+                            ? (isDark ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-600')
+                            : (isDark ? 'border-rose-500/20 bg-rose-500/10 text-rose-300' : 'border-rose-200 bg-rose-50 text-rose-600')
+                        }`}
+                      >
+                        {isIncome ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`truncate text-sm font-semibold sm:text-base ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                            {transaction.category}
+                          </span>
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] ${
+                              isIncome
+                                ? (isDark ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700')
+                                : (isDark ? 'border-rose-500/20 bg-rose-500/10 text-rose-300' : 'border-rose-200 bg-rose-50 text-rose-700')
+                            }`}
+                          >
+                            {isIncome ? (language === 'id' ? 'Masuk' : 'In') : (language === 'id' ? 'Keluar' : 'Out')}
+                          </span>
+                        </div>
+                        <p className={`mt-1 truncate font-mono text-xs sm:text-sm ${isDark ? 'text-[#666666]' : 'text-slate-500'}`}>
+                          {formatDateLang(transaction.date)}
+                          {transaction.description ? ` • ${transaction.description}` : ''}
+                        </p>
+                      </div>
+
+                      <div className="ml-3 shrink-0 text-right">
+                        <p className={`font-mono text-base font-semibold sm:text-lg ${isIncome ? (isDark ? 'text-emerald-300' : 'text-emerald-600') : (isDark ? 'text-rose-300' : 'text-rose-600')}`}>
+                          {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
+                        </p>
+                        <p className={`mt-1 text-[11px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                          {language === 'id' ? 'Ketuk untuk edit' : 'Tap to edit'}
+                        </p>
+                      </div>
+                    </button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className={isDark ? 'text-[#ff4757] hover:text-[#ff6b6b] hover:bg-[#ff4757]/10' : 'text-rose-500 hover:text-rose-600 hover:bg-rose-50'}
+                      onClick={() => {
+                        setTransactionToDelete(transaction);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
           )}
-        </div>
+        </TerminalCard>
       </div>
 
       {/* Delete Confirmation Dialog */}

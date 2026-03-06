@@ -1,0 +1,1 @@
+import{r as o}from"./index-BLa9ruDH.js";const r=768;function u(){const[s,n]=o.useState(!1);return o.useEffect(()=>{const t=()=>{n(window.innerWidth<r)};t();let e;const i=()=>{clearTimeout(e),e=setTimeout(t,100)};return window.addEventListener("resize",i),()=>{window.removeEventListener("resize",i),clearTimeout(e)}},[]),s}export{u};

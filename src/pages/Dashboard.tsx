@@ -17,6 +17,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { getTransactions } from '@/lib/supabase';
 import type { Transaction } from '@/types';
 import { formatCompactNumber } from '@/utils/formatters';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -63,6 +64,7 @@ const Dashboard: React.FC = () => {
   const { t, language, formatCurrency, formatDate } = useLanguage();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const isMobile = useIsMobile();
 
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<TimeRange>('7days');
@@ -414,7 +416,7 @@ const Dashboard: React.FC = () => {
           eyebrow={language === 'id' ? 'Ringkasan' : 'Overview'}
           title={t('dashboard.title')}
           subtitle={t('dashboard.subtitle')}
-          action={(
+          action={!isMobile ? (
             <>
               <DigitalClock />
               <TerminalButton onClick={() => navigate('/transactions/new')}>
@@ -422,11 +424,90 @@ const Dashboard: React.FC = () => {
                 {t('dashboard.addTransaction')}
               </TerminalButton>
             </>
-          )}
+          ) : undefined}
         />
 
-        {/* Time Range & Status */}
-        <div className="flex flex-col gap-4 rounded-[28px] border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <CryptoChart 
+          data={chartData}
+          timeRange={timeRange}
+          onTimeRangeChange={setTimeRange}
+          loading={loading}
+        />
+
+        <TerminalCard 
+          title="top_categories" 
+          subtitle={t('dashboard.expenseDistribution')}
+        >
+          {loading ? (
+            <Skeleton className={`h-64 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+          ) : categoryData.length === 0 ? (
+            <div className={`flex h-64 items-center justify-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+              {t('status.no_data')}
+            </div>
+          ) : (
+            <>
+              <ResponsiveContainer width="100%" height={200}>
+                <RePieChart>
+                  <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
+                    {categoryData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={['#EAB308', '#F59E0B', '#D97706', '#B45309'][index % 4]}
+                      />
+                    ))}
+                  </Pie>
+                </RePieChart>
+              </ResponsiveContainer>
+              <div className="mt-4 space-y-2">
+                {categoryData.slice(0, 4).map((cat) => (
+                  <div key={cat.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                      <span className={`max-w-[180px] truncate font-mono text-xs ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>{cat.name}</span>
+                    </div>
+                    <span className={`font-mono text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatCompactNumber(cat.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </TerminalCard>
+
+        <TerminalCard 
+          title="top_expenses" 
+          subtitle={t('dashboard.highestExpenseCategories')}
+        >
+          {loading ? (
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+              ))}
+            </div>
+          ) : topExpenses.length === 0 ? (
+            <div className={`py-8 text-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+              {t('status.no_data')}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {topExpenses.map((expense, index) => (
+                <div key={expense.category} className="flex items-center gap-4">
+                  <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border text-sm font-bold font-mono ${isDark ? 'border-[#333333] bg-[#1a1a1a] text-[#ff4757]' : 'border-gray-200 bg-gray-100 text-red-500'}`}>
+                    {index + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className={`truncate text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{expense.category}</span>
+                      <span className="text-sm font-mono font-semibold" style={{ color: colors.red }}>{formatCurrency(expense.amount)}</span>
+                    </div>
+                    <Progress value={(expense.amount / topExpenses[0].amount) * 100} className={`h-1.5 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </TerminalCard>
+
+        <div className="flex flex-col gap-4 rounded-[24px] border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <TimeRangeSelector />
           <div className="flex items-center gap-2">
             <div className={`h-2.5 w-2.5 rounded-full animate-pulse ${isDark ? 'bg-[#00d084] shadow-[0_0_8px_rgba(0,208,132,0.8)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]'}`} />
@@ -490,7 +571,7 @@ const Dashboard: React.FC = () => {
                   </>
                 )}
               </div>
-              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#3742fa]' : 'bg-gray-100 border-gray-200 text-indigo-500'}`}>
+              <div className={`rounded border p-3 ${isDark ? 'border-[#333333] bg-[#1a1a1a] text-[#3742fa]' : 'border-gray-200 bg-gray-100 text-indigo-500'}`}>
                 <PiggyBank className="h-5 w-5" />
               </div>
             </div>
@@ -501,153 +582,61 @@ const Dashboard: React.FC = () => {
           </TerminalCard>
         </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <div className="lg:col-span-2">
-            <CryptoChart 
-              data={chartData}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              loading={loading}
-            />
+        <TerminalCard 
+          title="recent_transactions" 
+          subtitle={t('dashboard.last5Transactions')}
+        >
+          <div className="mb-4 flex justify-end">
+            <TerminalButton 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/transactions')}
+              glow={false}
+              className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}
+            >
+              {t('dashboard.viewAll')} →
+            </TerminalButton>
           </div>
 
-          <TerminalCard 
-            title="top_categories" 
-            subtitle={t('dashboard.expenseDistribution')}
-          >
-            {loading ? (
-              <Skeleton className={`h-64 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
-            ) : categoryData.length === 0 ? (
-              <div className={`h-64 flex items-center justify-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-                {t('status.no_data')}
-              </div>
-            ) : (
-              <>
-                <ResponsiveContainer width="100%" height={200}>
-               <RePieChart>
-  <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
-    {categoryData.map((_, index) => (
-      <Cell 
-        key={`cell-${index}`} 
-        fill={isDark 
-          ? ['#EAB308', '#F59E0B', '#D97706', '#B45309'][index % 4] // Kuning gradasi (dark)
-          : ['#EAB308', '#F59E0B', '#D97706', '#B45309'][index % 4] // Kuning gradasi (light)
-        } 
-      />
-    ))}
-  </Pie>
-  ...
-</RePieChart>
-                </ResponsiveContainer>
-                <div className="space-y-2 mt-4">
-                  {categoryData.slice(0, 4).map((cat) => (
-                    <div key={cat.name} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                        <span className={`truncate max-w-[100px] font-mono text-xs ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>{cat.name}</span>
-                      </div>
-                      <span className={`font-mono font-medium text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatCompactNumber(cat.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </TerminalCard>
-        </div>
-
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <TerminalCard 
-            title="top_expenses" 
-            subtitle={t('dashboard.highestExpenseCategories')}
-          >
-            {loading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
-                ))}
-              </div>
-            ) : topExpenses.length === 0 ? (
-              <div className={`text-center py-8 font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-                {t('status.no_data')}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {topExpenses.map((expense, index) => (
-                  <div key={expense.category} className="flex items-center gap-4">
-                    <div className={`flex-shrink-0 w-8 h-8 rounded border flex items-center justify-center font-bold text-sm font-mono ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#ff4757]' : 'bg-gray-100 border-gray-200 text-red-500'}`}>
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{expense.category}</span>
-                        <span className="font-mono font-semibold text-sm" style={{ color: colors.red }}>{formatCurrency(expense.amount)}</span>
-                      </div>
-                      <Progress value={(expense.amount / topExpenses[0].amount) * 100} className={`h-1.5 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TerminalCard>
-
-          <TerminalCard 
-            title="recent_transactions" 
-            subtitle={t('dashboard.last5Transactions')}
-          >
-            <div className="flex justify-end mb-4">
-              <TerminalButton 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/transactions')}
-                glow={false}
-                className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}
-              >
-                {t('dashboard.viewAll')} →
-              </TerminalButton>
+          {loading ? (
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+              ))}
             </div>
-
-            {loading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
-                ))}
-              </div>
-            ) : recentTransactions.length === 0 ? (
-              <div className={`text-center py-8 font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-                {t('status.no_data')}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentTransactions.map((transaction) => (
-                  <div 
-                    key={transaction.id} 
-                    className={`flex items-center justify-between p-3 rounded border cursor-pointer transition-colors ${
-                      isDark 
-                        ? 'bg-[#1a1a1a] border-[#252525] hover:border-[#333333]' 
-                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => navigate('/transactions')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/10 text-[#00d084]' : 'bg-green-100 text-green-600') : (isDark ? 'bg-[#ff4757]/10 text-[#ff4757]' : 'bg-red-100 text-red-600')}`}>
-                        {transaction.type === 'income' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                      </div>
-                      <div>
-                        <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</p>
-                        <p className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{formatDate(transaction.date)}</p>
-                      </div>
+          ) : recentTransactions.length === 0 ? (
+            <div className={`py-8 text-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+              {t('status.no_data')}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentTransactions.map((transaction) => (
+                <div 
+                  key={transaction.id} 
+                  className={`flex cursor-pointer items-center justify-between rounded border p-3 transition-colors ${
+                    isDark 
+                      ? 'border-[#252525] bg-[#1a1a1a] hover:border-[#333333]' 
+                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  }`}
+                  onClick={() => navigate('/transactions')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded p-2 ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/10 text-[#00d084]' : 'bg-green-100 text-green-600') : (isDark ? 'bg-[#ff4757]/10 text-[#ff4757]' : 'bg-red-100 text-red-600')}`}>
+                      {transaction.type === 'income' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
                     </div>
-                    <span className={`font-mono font-semibold ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
-                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                    </span>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</p>
+                      <p className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{formatDate(transaction.date)}</p>
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </TerminalCard>
-        </div>
+                  <span className={`font-mono font-semibold ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
+                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </TerminalCard>
       </div>
     </Layout>
   );

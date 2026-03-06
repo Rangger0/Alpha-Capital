@@ -249,10 +249,6 @@ const Register = () => {
             {loading ? (language === 'id' ? 'Memproses...' : 'Creating account...') : success ? (language === 'id' ? 'Berhasil' : 'Success') : (language === 'id' ? 'Daftar' : 'Sign Up')}
           </Button>
         </form>
-
-        <p className={cn('text-sm', isDark ? 'text-zinc-500' : 'text-slate-500')}>
-          {language === 'id' ? 'Supabase dan data transaksi tidak diubah saat penyegaran tampilan ini.' : 'Supabase and transaction data are not changed by this UI refresh.'}
-        </p>
       </div>
     </AuthShell>
   );

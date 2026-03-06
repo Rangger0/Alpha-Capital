@@ -212,7 +212,7 @@ const Login = () => {
           </Button>
         </form>
 
-        <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center">
           <button
             type="button"
             onClick={() => setResetDialogOpen(true)}
@@ -220,9 +220,6 @@ const Login = () => {
           >
             {language === 'id' ? 'Lupa password?' : 'Forgot password?'}
           </button>
-          <p className={cn(isDark ? 'text-zinc-500' : 'text-slate-500')}>
-            {language === 'id' ? 'Data dan Supabase tetap aman.' : 'Your data and Supabase setup remain untouched.'}
-          </p>
         </div>
       </div>
 

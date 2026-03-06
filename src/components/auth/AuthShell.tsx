@@ -216,12 +216,6 @@ const AuthShell: React.FC<AuthShellProps> = ({
                 </div>
               </div>
             </div>
-
-            <div className="relative z-10 px-2 pt-6">
-              <p className={cn('text-sm', isDark ? 'text-zinc-500' : 'text-slate-500')}>
-                {language === 'id' ? 'Data Supabase tetap dipakai seperti sekarang.' : 'Supabase data stays untouched.'}
-              </p>
-            </div>
           </aside>
         </div>
       </div>

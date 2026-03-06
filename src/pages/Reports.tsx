@@ -11,9 +11,9 @@ import { CryptoChart } from '@/components/ui/CryptoChart';
 import {
   TerminalCard,
   TerminalButton,
-  TerminalPrompt,
   TerminalBadge,
 } from '@/components/ui/TerminalCard';
+import PageHeader from '@/components/layout/PageHeader';
 import {
   PieChart,
   Pie,
@@ -314,12 +314,6 @@ const Reports: React.FC = () => {
     return options;
   };
 
-  const reportTypeLabels = { 
-    daily: language === 'id' ? 'harian' : 'daily', 
-    monthly: language === 'id' ? 'bulanan' : 'monthly', 
-    yearly: language === 'id' ? 'tahunan' : 'yearly' 
-  };
-
   const reportTypeButtons = {
     daily: language === 'id' ? 'Harian' : 'Daily',
     monthly: language === 'id' ? 'Bulanan' : 'Monthly',
@@ -329,45 +323,30 @@ const Reports: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
-          <div>
-            <TerminalPrompt 
-              command={`reports --type=${reportTypeLabels[reportType]} --period=${selectedPeriod}`} 
-              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
-            />
-            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {t('nav.reports')}
-            </h1>
-            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
-              {language === 'id' ? 'Analisis dan export data keuangan' : 'Financial data analysis and export'}
-            </p>
-          </div>
+        <PageHeader
+          eyebrow={language === 'id' ? 'Analisis' : 'Analytics'}
+          title={t('nav.reports')}
+          subtitle={language === 'id' ? 'Analisis dan ekspor data keuangan dalam tampilan yang lebih ringan.' : 'Analyze and export financial data in a lighter layout.'}
+          action={(
+            <TerminalButton
+              onClick={exportToCSV}
+              disabled={filteredTransactions.length === 0}
+              variant="secondary"
+              glow={false}
+              className={isDark ? 'bg-[#1a1a1a] text-white border-[#333333] hover:bg-[#252525]' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}
+            >
+              <Download className={`mr-2 h-4 w-4 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
+              Export CSV
+            </TerminalButton>
+          )}
+        />
 
-          <TerminalButton
-            onClick={exportToCSV}
-            disabled={filteredTransactions.length === 0}
-            variant="secondary"
-            glow={false}
-            className={isDark ? 'bg-[#1a1a1a] text-white border-[#333333] hover:bg-[#252525]' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}
-          >
-            <Download className={`h-4 w-4 mr-2 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
-            Export CSV
-          </TerminalButton>
-        </div>
-
-        {/* Crypto Chart */}
-        <TerminalCard 
-          title="financial_analysis" 
-          subtitle={language === 'id' ? 'tren_cashflow' : 'cashflow_trend'}
-        >
-          <CryptoChart 
-            data={chartData}
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
-            loading={loading}
-          />
-        </TerminalCard>
+        <CryptoChart 
+          data={chartData}
+          timeRange={timeRange}
+          onTimeRangeChange={setTimeRange}
+          loading={loading}
+        />
 
         {/* Filters */}
         <TerminalCard 
@@ -378,7 +357,7 @@ const Reports: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <label className={`block text-xs font-mono uppercase tracking-wider mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
-                $ {language === 'id' ? 'jenis_laporan' : 'report_type'}
+                {language === 'id' ? 'Jenis Laporan' : 'Report Type'}
               </label>
               <div className="flex gap-2">
                 {(['daily', 'monthly', 'yearly'] as const).map((type) => (
@@ -405,7 +384,7 @@ const Reports: React.FC = () => {
 
             <div className="flex-1">
               <label className={`block text-xs font-mono uppercase tracking-wider mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
-                $ {language === 'id' ? 'periode' : 'period'}
+                {language === 'id' ? 'Periode' : 'Period'}
               </label>
               <select
                 value={selectedPeriod}
@@ -511,7 +490,7 @@ const Reports: React.FC = () => {
             <div className="space-y-6">
   <div id="tab-expense">
     <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#DC2626]/70' : 'text-blue-900/70'}`}>
-      $ {language === 'id' ? 'pengeluaran --breakdown' : 'expense --breakdown'}
+      {language === 'id' ? 'Distribusi Pengeluaran' : 'Expense Breakdown'}
     </h4>
     {expenseCategories.length > 0 ? (
       <ResponsiveContainer width="100%" height={200}>
@@ -541,14 +520,14 @@ const Reports: React.FC = () => {
       </ResponsiveContainer>
     ) : (
       <div className={`text-center py-8 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-        [NULL] {language === 'id' ? 'Tidak ada data pengeluaran' : 'No expense data'}
+        {language === 'id' ? 'Tidak ada data pengeluaran' : 'No expense data'}
       </div>
     )}
   </div>
 
   <div id="tab-income">
     <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#EAB308]/70' : 'text-yellow-600/70'}`}>
-      $ {language === 'id' ? 'pemasukan --breakdown' : 'income --breakdown'}
+      {language === 'id' ? 'Distribusi Pemasukan' : 'Income Breakdown'}
     </h4>
     {incomeCategories.length > 0 ? (
       <ResponsiveContainer width="100%" height={200}>
@@ -598,7 +577,7 @@ const Reports: React.FC = () => {
               <div className="space-y-4 max-h-[400px] overflow-auto">
                 <div>
                   <h4 className={`text-xs font-mono uppercase tracking-wider mb-2 sticky top-0 py-1 ${isDark ? 'bg-[#111111]/80 text-[#ff4757]/70' : 'bg-white/80 text-red-500/70'}`}>
-                    $ {language === 'id' ? 'list --type=expense' : 'list --type=expense'}
+                    {language === 'id' ? 'Daftar Pengeluaran' : 'Expense List'}
                   </h4>
                   <div className="space-y-2">
                     {expenseCategories.length > 0 ? (
@@ -619,14 +598,14 @@ const Reports: React.FC = () => {
                         </div>
                       ))
                     ) : (
-                      <div className={`text-center py-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>[EMPTY] {language === 'id' ? 'Tidak ada data' : 'No data'}</div>
+                      <div className={`text-center py-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{language === 'id' ? 'Tidak ada data' : 'No data'}</div>
                     )}
                   </div>
                 </div>
 
                 <div>
                   <h4 className={`text-xs font-mono uppercase tracking-wider mb-2 sticky top-0 py-1 ${isDark ? 'bg-[#111111]/80 text-[#00d084]/70' : 'bg-white/80 text-green-500/70'}`}>
-                    $ {language === 'id' ? 'list --type=income' : 'list --type=income'}
+                    {language === 'id' ? 'Daftar Pemasukan' : 'Income List'}
                   </h4>
                   <div className="space-y-2">
                     {incomeCategories.length > 0 ? (
@@ -647,7 +626,7 @@ const Reports: React.FC = () => {
                         </div>
                       ))
                     ) : (
-                      <div className={`text-center py-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>[EMPTY] {language === 'id' ? 'Tidak ada data' : 'No data'}</div>
+                      <div className={`text-center py-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{language === 'id' ? 'Tidak ada data' : 'No data'}</div>
                     )}
                   </div>
                 </div>
@@ -658,11 +637,10 @@ const Reports: React.FC = () => {
           <TerminalCard title="system_status">
             <div className="p-12 text-center">
               <Calendar className={`h-16 w-16 mx-auto mb-4 ${isDark ? 'text-[#ffa502]/30' : 'text-blue-500/30'}`} />
-              <h3 className={`text-lg font-mono font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>[404] {language === 'id' ? 'Data Tidak Ditemukan' : 'Data Not Found'}</h3>
+              <h3 className={`text-lg font-mono font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{language === 'id' ? 'Data Tidak Ditemukan' : 'Data Not Found'}</h3>
               <p className={`font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
                 {language === 'id' ? 'Tidak ada transaksi untuk periode yang dipilih' : 'No transactions for selected period'}
               </p>
-              <TerminalPrompt command="transactions --add --help" className={`mt-4 justify-center ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`} />
             </div>
           </TerminalCard>
         )}

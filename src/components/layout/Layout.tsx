@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core'; // TAMBAHKAN INI
-
-import { 
-  LayoutDashboard, 
-  Receipt, 
-  Calendar, 
-  FileText, 
-  LogOut, 
-  Moon, 
-  Sun, 
-  Globe, 
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import {
+  ArrowLeftRight,
+  BarChart3,
+  CalendarDays,
   DollarSign,
+  Globe,
+  LayoutDashboard,
+  LogOut,
   Menu,
+  Moon,
+  Sun,
   X,
-  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Button } from '@/components/ui/button';
-
+import { useTheme } from '@/contexts/ThemeContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,19 +27,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
-
-// Social links data
-const socialLinks = [
-  { name: 'Telegram', icon: 'telegram', url: 'https://t.me/+MGzRobr9cp4yMTk1', color: 'bg-blue-500' },
-  { name: 'X', icon: 'x', url: 'https://x.com/rinzx_', color: 'bg-slate-800' },
-  { name: 'TikTok', icon: 'tiktok', url: 'https://www.tiktok.com/@rinzzx0', color: 'bg-pink-500' },
-  { name: 'GitHub', icon: 'github', url: 'https://github.com/Rangger0', color: 'bg-slate-700' },
-  { name: 'Email', icon: 'email', url: 'mailto:Allgazali011@gmail.com', color: 'bg-red-500' },
-];
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
@@ -53,15 +41,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { language, setLanguage, currency, setCurrency } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-
-  // DETEKSI PLATFORM - TAMBAHKAN INI
+  const isDark = theme === 'dark';
   const isNative = Capacitor.isNativePlatform();
 
   const navItems = [
     { path: '/dashboard', label: language === 'id' ? 'Dashboard' : 'Dashboard', icon: LayoutDashboard },
-    { path: '/transactions', label: language === 'id' ? 'Transaksi' : 'Transactions', icon: Receipt },
-    { path: '/calendar', label: language === 'id' ? 'Kalender' : 'Calendar', icon: Calendar },
-    { path: '/reports', label: language === 'id' ? 'Laporan' : 'Reports', icon: FileText },
+    { path: '/transactions', label: language === 'id' ? 'Transaksi' : 'Transactions', icon: ArrowLeftRight },
+    { path: '/calendar', label: language === 'id' ? 'Kalender' : 'Calendar', icon: CalendarDays },
+    { path: '/reports', label: language === 'id' ? 'Laporan' : 'Reports', icon: BarChart3 },
   ];
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -71,387 +58,353 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
-  // Simple SVG icons for social media
-  const SocialIcon = ({ name }: { name: string }) => {
-    switch (name) {
-      case 'telegram':
-        return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-          </svg>
-        );
-      case 'x':
-        return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-          </svg>
-        );
-      case 'tiktok':
-        return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-          </svg>
-        );
-      case 'github':
-        return (
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-          </svg>
-        );
-      case 'email':
-        return (
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-          </svg>
-        );
-      default:
-        return <ExternalLink className="w-4 h-4" />;
-    }
-  };
+  const surfaceCard = isDark
+    ? 'border-white/10 bg-[#0b0b0b] text-white'
+    : 'border-white/70 bg-white/90 text-slate-950';
 
-  return (
-    <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
-       
-      <header className={`
-        sticky top-0 z-50 border-b backdrop-blur-lg
-        pt-6 sm:pt-7 md:pt-8
-        ${theme === 'dark' 
-          ? 'bg-black/80 border-slate-800' 
-          : 'bg-white/80 border-slate-200'}
-      `}>
-        <div className="flex items-center justify-between h-14 px-4 lg:px-6 pb-2">
-          {/* Left: Logo & Title */}
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-muted"
-            >
-              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-            
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-              
-              {/* LOGO - Hanya tampil di WEB, hidden di Android/iOS */}
-              {!isNative && (
-                <div className="relative w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
-                  <img 
-                    src="/logo.png" 
-                    alt="Alpha Capital" 
-                    className="w-8 h-8 object-contain relative z-10"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🚀</text></svg>';
-                    }}
-                  />
+  const sidebarBody = (
+    <div
+      className="flex h-full flex-col px-4 pb-4 pt-4 sm:px-5"
+      style={{
+        paddingTop: isNative ? 'max(1rem, env(safe-area-inset-top))' : undefined,
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          navigate('/dashboard');
+          setSidebarOpen(false);
+        }}
+        className={cn(
+          'flex items-center gap-3 rounded-[28px] border px-4 py-4 text-left transition-colors',
+          surfaceCard,
+        )}
+      >
+        <div
+          className={cn(
+            'flex h-12 w-12 items-center justify-center rounded-2xl border',
+            isDark ? 'border-white/10 bg-white/[0.04]' : 'border-slate-200 bg-white',
+          )}
+        >
+          <img src="/logo.png" alt="Alpha Capital" className="h-8 w-8 object-contain" />
+        </div>
+        <div className="min-w-0">
+          <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-amber-300' : 'text-blue-700')}>
+            Alpha Capital
+          </p>
+          <p className={cn('mt-1 text-sm', isDark ? 'text-zinc-400' : 'text-slate-500')}>v1.0.0</p>
+        </div>
+      </button>
+
+      <div className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.02] p-3 dark:bg-white/[0.02]">
+        <div className="mb-3 px-2">
+          <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+            {language === 'id' ? 'Navigasi' : 'Navigation'}
+          </p>
+        </div>
+        <nav className="space-y-1.5">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+
+            return (
+              <button
+                key={item.path}
+                type="button"
+                onClick={() => {
+                  navigate(item.path);
+                  setSidebarOpen(false);
+                }}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors',
+                  active
+                    ? (isDark
+                        ? 'bg-amber-500/15 text-amber-300'
+                        : 'bg-blue-50 text-blue-700')
+                    : (isDark
+                        ? 'text-zinc-300 hover:bg-white/[0.04] hover:text-white'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'),
+                )}
+              >
+                <div
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-2xl border',
+                    active
+                      ? (isDark ? 'border-amber-500/20 bg-amber-500/10' : 'border-blue-200 bg-white')
+                      : (isDark ? 'border-white/10 bg-white/[0.03]' : 'border-slate-200 bg-white'),
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
                 </div>
-              )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{item.label}</p>
+                </div>
+                <span
+                  className={cn(
+                    'h-2.5 w-2.5 rounded-full transition-opacity',
+                    active
+                      ? (isDark ? 'bg-amber-400 opacity-100' : 'bg-blue-600 opacity-100')
+                      : 'opacity-0',
+                  )}
+                />
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-              {/* Title - Tampil di semua platform */}
-              <div className="flex flex-col">
-                <h1 className={`
-                  font-bold text-lg leading-tight font-mono
-                  ${theme === 'dark' ? 'text-amber-400' : 'text-amber-400'}
-                `}>
-                  Alpha Capital
-                </h1>
-                <p className={`text-xs font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                  v1.0.0
+      <div className="mt-6">
+        <section className={cn('rounded-[28px] border p-4', surfaceCard)}>
+          <div className="mb-4 flex items-center gap-2">
+            <Globe className={cn('h-4 w-4', isDark ? 'text-amber-300' : 'text-blue-700')} />
+            <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+              {language === 'id' ? 'Preferensi' : 'Preferences'}
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Globe className={cn('h-3.5 w-3.5', isDark ? 'text-zinc-400' : 'text-slate-500')} />
+                <p className={cn('text-[11px] font-semibold uppercase tracking-[0.22em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+                  {language === 'id' ? 'Bahasa' : 'Language'}
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* Right: Controls - Theme Toggle and Logout */}
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleTheme}
-              className={`mr-2 ${theme === 'dark' ? 'text-amber-400 hover:text-amber-300' : 'text-amber-400 hover:text-amber-500'}`}
-            >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-
-            {/* Logout - Hidden on mobile, show on desktop */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setLogoutDialogOpen(true)}
-              className={`hidden lg:flex gap-2 font-mono ${theme === 'dark' ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10' : 'text-red-500 hover:text-red-600 hover:bg-red-50'}`}
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">
-                {language === 'id' ? 'Keluar' : 'Logout'}
-              </span>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Navigation + Language & Currency Cards */}
-        <aside className={`
-          fixed lg:static inset-y-0 left-0 z-40 w-64 border-r transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${theme === 'dark' 
-            ? 'bg-black border-slate-800' 
-            : 'bg-white border-slate-200'}
-        `}>
-          {/* Mobile: Add padding top for header + status bar */}
-          <div className="lg:hidden h-24" />
-          
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              return (
+              <div className="grid grid-cols-2 gap-2">
                 <button
-                  key={item.path}
-                  onClick={() => {
-                    navigate(item.path);
-                    setSidebarOpen(false);
-                  }}
-                  className={`
-                    w-full flex items-center gap-3 px-4 py-3 rounded-lg font-mono text-sm transition-all
-                    ${active
-                      ? (theme === 'dark' 
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
-                        : 'bg-amber-500/10 text-amber-500 border border-amber-400/10')
-                      : (theme === 'dark' 
-                        ? 'text-slate-400 hover:bg-slate-900 hover:text-amber-400' 
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-amber-600')
-                    }
-                  `}
-                >
-                  <Icon className={`h-5 w-5 ${active ? 'animate-pulse' : ''}`} />
-                  {item.label}
-                  {active && (
-                    <div className={`
-                      ml-auto w-2 h-2 rounded-full
-                      ${theme === 'dark' ? 'bg-amber-400' : 'bg-amber-500'}
-                    `} />
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Language & Currency Cards - Di bawah menu Reports */}
-          <div className="px-4 mt-6 space-y-3">
-            {/* Language Card */}
-            <div className={`
-              rounded-xl p-4 border transition-all
-              ${theme === 'dark' 
-                ? 'bg-slate-900/50 border-slate-800 hover:border-amber-500/50' 
-                : 'bg-slate-50 border-slate-200 hover:border-amber-400/50'}
-            `}>
-              <div className="flex items-center gap-2 mb-3">
-                <Globe className={`h-4 w-4 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`} />
-                <span className={`text-xs font-mono font-semibold uppercase ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-                  {language === 'id' ? 'Bahasa' : 'Language'}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <button
+                  type="button"
                   onClick={() => setLanguage('id')}
-                  className={`
-                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
-                    ${language === 'id'
-                      ? (theme === 'dark'
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
-                      : (theme === 'dark'
-                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
-                    }
-                  `}
+                  className={cn(
+                    'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
+                    language === 'id'
+                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
+                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                  )}
                 >
                   🇮🇩 ID
                 </button>
                 <button
+                  type="button"
                   onClick={() => setLanguage('en')}
-                  className={`
-                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
-                    ${language === 'en'
-                      ? (theme === 'dark'
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
-                      : (theme === 'dark'
-                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
-                    }
-                  `}
+                  className={cn(
+                    'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
+                    language === 'en'
+                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
+                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                  )}
                 >
                   🇺🇸 EN
                 </button>
               </div>
             </div>
 
-            {/* Currency Card */}
-            <div className={`
-              rounded-xl p-4 border transition-all
-              ${theme === 'dark' 
-                ? 'bg-slate-900/50 border-slate-800 hover:border-amber-500/50' 
-                : 'bg-slate-50 border-slate-200 hover:border-amber-400/50'}
-            `}>
-              <div className="flex items-center gap-2 mb-3">
-                <DollarSign className={`h-4 w-4 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`} />
-                <span className={`text-xs font-mono font-semibold uppercase ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+            <div className={cn('h-px', isDark ? 'bg-white/10' : 'bg-slate-200')} />
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className={cn('h-3.5 w-3.5', isDark ? 'text-zinc-400' : 'text-slate-500')} />
+                <p className={cn('text-[11px] font-semibold uppercase tracking-[0.22em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
                   {language === 'id' ? 'Mata Uang' : 'Currency'}
-                </span>
+                </p>
               </div>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
+                  type="button"
                   onClick={() => setCurrency('IDR')}
-                  className={`
-                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
-                    ${currency === 'IDR'
-                      ? (theme === 'dark'
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
-                      : (theme === 'dark'
-                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
-                    }
-                  `}
+                  className={cn(
+                    'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
+                    currency === 'IDR'
+                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
+                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                  )}
                 >
                   🇮🇩 IDR
                 </button>
                 <button
+                  type="button"
                   onClick={() => setCurrency('USD')}
-                  className={`
-                    flex-1 py-2 px-3 rounded-lg text-sm font-mono transition-all
-                    ${currency === 'USD'
-                      ? (theme === 'dark'
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-amber-500/10 text-amber-600 border border-amber-400/30')
-                      : (theme === 'dark'
-                        ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200')
-                    }
-                  `}
+                  className={cn(
+                    'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
+                    currency === 'USD'
+                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
+                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                  )}
                 >
                   🇺🇸 USD
                 </button>
               </div>
             </div>
           </div>
+        </section>
+      </div>
 
-          {/* Mobile: Logout Button - ABOVE Close button */}
-          <div className="lg:hidden absolute bottom-20 left-4 right-4 space-y-3">
-            {/* Logout Button - Now above Tutup Menu */}
-            <Button 
-              variant="outline" 
-              className={`w-full font-mono border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300`}
-              onClick={() => setLogoutDialogOpen(true)}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              {language === 'id' ? 'Keluar' : 'Logout'}
-            </Button>
-
-            {/* Close Menu Button - Now below Logout */}
-            <Button 
-              variant="outline" 
-              className={`w-full font-mono ${theme === 'dark' ? 'border-slate-700 text-amber-400 hover:bg-slate-900' : 'border-slate-200 text-amber-600 hover:bg-slate-100'}`}
-              onClick={() => setSidebarOpen(false)}
-            >
-              {language === 'id' ? 'Tutup Menu' : 'Close Menu'}
-            </Button>
+      <div className="mt-auto space-y-3 pt-6">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={cn(
+            'flex w-full items-center justify-between rounded-[24px] border px-4 py-3 text-left transition-colors',
+            surfaceCard,
+          )}
+        >
+          <div>
+            <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+              {language === 'id' ? 'Tema' : 'Theme'}
+            </p>
+            <p className="mt-1 text-sm font-medium">
+              {isDark ? (language === 'id' ? 'Mode Gelap' : 'Dark Mode') : (language === 'id' ? 'Mode Terang' : 'Light Mode')}
+            </p>
           </div>
-        </aside>
+          <div
+            className={cn(
+              'flex h-11 w-11 items-center justify-center rounded-2xl border',
+              isDark ? 'border-amber-500/20 bg-amber-500/10 text-amber-300' : 'border-blue-200 bg-blue-50 text-blue-700',
+            )}
+          >
+            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </div>
+        </button>
 
-        {/* Overlay for mobile */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
+        <button
+          type="button"
+          onClick={() => setLogoutDialogOpen(true)}
+          className={cn(
+            'flex w-full items-center justify-between rounded-[24px] border px-4 py-3 text-left transition-colors',
+            isDark
+              ? 'border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/15'
+              : 'border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100',
+          )}
+        >
+          <div>
+            <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-rose-200/80' : 'text-rose-500')}>
+              {language === 'id' ? 'Sesi' : 'Session'}
+            </p>
+            <p className="mt-1 text-sm font-medium">
+              {language === 'id' ? 'Keluar dari akun' : 'Sign out of account'}
+            </p>
+          </div>
+          <div className={cn('flex h-11 w-11 items-center justify-center rounded-2xl', isDark ? 'bg-black/30' : 'bg-white')}>
+            <LogOut className="h-5 w-5" />
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      className={cn('relative min-h-screen overflow-hidden', isDark ? 'bg-[#050505] text-white' : 'bg-[#eef3fb] text-slate-950')}
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}
+    >
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-0',
+          isDark
+            ? 'bg-[radial-gradient(circle_at_top_left,rgba(255,165,2,0.10),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,165,2,0.08),transparent_24%)]'
+            : 'bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.10),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_26%)]',
         )}
+      />
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 w-[min(86vw,320px)] transform border-r transition-transform duration-200 ease-out lg:w-[280px] lg:translate-x-0',
+          isDark ? 'border-white/10 bg-[#070707]/96' : 'border-white/70 bg-[#edf2fa]/96',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
+        {sidebarBody}
+      </aside>
+
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-30 bg-black/45 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close sidebar overlay"
+        />
+      )}
+
+      <div className="relative flex min-h-screen flex-col lg:pl-[280px]">
+        <header
+          className={cn(
+            'border-b px-4 sm:px-6 lg:px-8',
+            isDark ? 'border-white/10 bg-[#050505]' : 'border-white/70 bg-[#eef3fb]',
+          )}
+          style={{ paddingTop: isNative ? 'max(0.75rem, env(safe-area-inset-top))' : undefined }}
+        >
+          <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen((prev) => !prev)}
+                className={cn(
+                  'flex h-11 w-11 items-center justify-center rounded-2xl border transition-colors lg:hidden',
+                  surfaceCard,
+                )}
+              >
+                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+
+              <div>
+                <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+                  Alpha Capital
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={cn(
+                  'flex h-11 w-11 items-center justify-center rounded-2xl border transition-colors lg:hidden',
+                  surfaceCard,
+                )}
+              >
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="relative flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <div className="mx-auto w-full max-w-[1440px]">
             {children}
           </div>
         </main>
+
+        <footer className={cn('border-t px-4 py-4 text-sm sm:px-6 lg:px-8', isDark ? 'border-white/10' : 'border-white/70')}>
+          <div className="mx-auto flex max-w-[1440px] flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className={cn(isDark ? 'text-zinc-500' : 'text-slate-500')}>
+              Alpha Capital
+            </p>
+            <p className={cn(isDark ? 'text-zinc-500' : 'text-slate-500')}>
+              {language === 'id' ? 'Powered by Rose Alpha' : 'Powered by Rose Alpha'}
+            </p>
+          </div>
+        </footer>
       </div>
 
-      {/* Footer */}
-      <footer className={`
-        border-t py-4 px-4 lg:px-6
-        ${theme === 'dark' 
-          ? 'bg-black border-slate-800' 
-          : 'bg-white border-slate-200'}
-      `}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Left: Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent">
-              <span className={`
-                font-mono font-bold text-lg
-                ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}
-              `}>
-                &gt;_
-              </span>
-            </div>
-            <span className={`font-bold text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Alpha Capital</span>
-          </div>
-
-          {/* Center: Powered by */}
-          <div className={`text-xs font-mono text-center ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-            {language === 'id' ? 'Ditenagai oleh' : 'Powered by'}{' '}
-            <span className={theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}>
-              Rose Alpha
-            </span>
-          </div>
-
-          {/* Right: Social Links */}
-          <div className="flex items-center gap-2">
-            {socialLinks.map((social) => (
-              <a
-                key={social.name}
-                href={social.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`
-                  w-8 h-8 rounded-lg flex items-center justify-center transition-all
-                  ${theme === 'dark' 
-                    ? 'bg-slate-900 text-slate-400 hover:bg-amber-500/20 hover:text-amber-400' 
-                    : 'bg-slate-100 text-slate-600 hover:bg-amber-500/10 hover:text-amber-600'}
-                `}
-                title={social.name}
-              >
-                <SocialIcon name={social.icon} />
-              </a>
-            ))}
-          </div>
-        </div>
-      </footer>
-
-      {/* Logout Dialog */}
       <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
-        <AlertDialogContent className={`
-          ${theme === 'dark' 
-            ? 'bg-black border-slate-800' 
-            : 'bg-white border-slate-200'}
-        `}>
+        <AlertDialogContent className={cn('rounded-[28px] border', surfaceCard)}>
           <AlertDialogHeader>
-            <AlertDialogTitle className={`font-mono ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>
-              {language === 'id' ? 'Konfirmasi Keluar' : 'Confirm Logout'}
+            <AlertDialogTitle className="text-xl">
+              {language === 'id' ? 'Konfirmasi keluar' : 'Confirm sign out'}
             </AlertDialogTitle>
-            <AlertDialogDescription className={`font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-              {language === 'id' 
-                ? 'Apakah Anda yakin ingin keluar dari aplikasi?' 
-                : 'Are you sure you want to logout?'}
+            <AlertDialogDescription className={cn(isDark ? 'text-zinc-400' : 'text-slate-600')}>
+              {language === 'id'
+                ? 'Anda akan keluar dari akun aktif. Lanjutkan?'
+                : 'You will be signed out from the current account. Continue?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className={`font-mono ${theme === 'dark' ? 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'}`}>
+            <AlertDialogCancel className={cn('rounded-2xl', isDark ? 'border-white/10 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.08]' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50')}>
               {language === 'id' ? 'Batal' : 'Cancel'}
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleSignOut}
-              className="bg-red-500 hover:bg-red-600 font-mono text-white"
+              className="rounded-2xl bg-rose-500 text-white hover:bg-rose-600"
             >
               {language === 'id' ? 'Keluar' : 'Logout'}
             </AlertDialogAction>

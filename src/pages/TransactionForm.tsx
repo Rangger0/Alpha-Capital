@@ -27,9 +27,9 @@ import {
 import {
   TerminalCard,
   TerminalButton,
-  TerminalPrompt,
 } from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
+import PageHeader from '@/components/layout/PageHeader';
 
 const TransactionForm: React.FC = () => {
   const navigate = useNavigate();
@@ -170,29 +170,21 @@ const TransactionForm: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className={`flex items-center gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
-          <TerminalButton 
-            variant="ghost" 
-            onClick={() => navigate('/transactions')}
-            glow={false}
-            className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </TerminalButton>
-          <div>
-            <TerminalPrompt 
-              command={isEdit ? `transactions --edit --id=${id}` : 'transactions --new'} 
-              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
-            />
-            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {isEdit ? (language === 'id' ? 'Edit Transaksi' : 'Edit Transaction') : (language === 'id' ? 'Tambah Transaksi' : 'Add Transaction')}
-            </h1>
-            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
-              {isEdit ? (language === 'id' ? 'Perbarui detail transaksi' : 'Update transaction details') : (language === 'id' ? 'Catat transaksi baru' : 'Record new transaction')}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          eyebrow={language === 'id' ? 'Formulir Transaksi' : 'Transaction Form'}
+          title={isEdit ? (language === 'id' ? 'Edit Transaksi' : 'Edit Transaction') : (language === 'id' ? 'Tambah Transaksi' : 'Add Transaction')}
+          subtitle={isEdit ? (language === 'id' ? 'Perbarui detail transaksi yang sudah ada.' : 'Update an existing transaction.') : (language === 'id' ? 'Catat transaksi baru tanpa mengubah data lainnya.' : 'Record a new transaction without changing other data.')}
+          leading={(
+            <TerminalButton 
+              variant="ghost" 
+              onClick={() => navigate('/transactions')}
+              glow={false}
+              className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </TerminalButton>
+          )}
+        />
 
         <TerminalCard 
           title="transaction_form" 

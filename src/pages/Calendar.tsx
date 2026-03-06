@@ -9,10 +9,10 @@ import type { Transaction } from '@/types';
 import {
   TerminalCard,
   TerminalButton,
-  TerminalPrompt,
   TerminalBadge,
 } from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
+import PageHeader from '@/components/layout/PageHeader';
 
 interface DayData {
   date: string;
@@ -144,32 +144,20 @@ const Calendar: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
-          <div>
-            <TerminalPrompt 
-              command={`calendar --month=${currentDate.getMonth() + 1} --year=${currentDate.getFullYear()}`} 
-              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
-            />
-            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {language === 'id' ? 'Kalender' : 'Calendar'}
-            </h1>
-            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
-              {language === 'id' ? 'Lihat transaksi berdasarkan tanggal' : 'View transactions by date'}
-            </p>
-          </div>
-
-          <TerminalButton 
-            onClick={() => navigate('/transactions/new')}
-            glow
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
-          </TerminalButton>
-        </div>
+        <PageHeader
+          eyebrow={`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
+          title={language === 'id' ? 'Kalender' : 'Calendar'}
+          subtitle={language === 'id' ? 'Lihat transaksi berdasarkan tanggal dengan tampilan yang lebih rapi di desktop dan mobile.' : 'Review transactions by date with a cleaner layout on desktop and mobile.'}
+          action={(
+            <TerminalButton onClick={() => navigate('/transactions/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
+            </TerminalButton>
+          )}
+        />
 
         {/* Month Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <TerminalCard title="month_income">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
@@ -222,17 +210,17 @@ const Calendar: React.FC = () => {
           </TerminalCard>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           {/* Calendar */}
           <TerminalCard 
             title="calendar_grid" 
             subtitle={`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
-            className="lg:col-span-2"
+            className="xl:col-span-2"
           >
             <div className="space-y-4">
               {/* Navigation */}
               <div className="flex items-center justify-between">
-                <h3 className={`text-xl font-bold font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-lg font-bold font-mono sm:text-xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </h3>
                 <div className="flex gap-2">
@@ -246,65 +234,84 @@ const Calendar: React.FC = () => {
               </div>
 
               {/* Week Days Header */}
-              <div className="grid grid-cols-7 gap-1">
-                {weekDays.map((day) => (
-                  <div key={day} className={`text-center text-xs font-mono py-2 uppercase tracking-wider ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar Grid */}
-              <div className="grid grid-cols-7 gap-1">
-                {calendarDays.map((day, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedDate(day.date)}
-                    className={`
-                      aspect-square p-2 rounded border transition-all font-mono text-sm
-                      ${day.isCurrentMonth
-                        ? (isDark 
-                            ? 'bg-[#0a0a0a] hover:bg-[#1a1a1a] border-[#252525] text-white' 
-                            : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-900')
-                        : (isDark 
-                            ? 'bg-[#0f0f0f] text-[#555555] border-transparent' 
-                            : 'bg-gray-50 text-gray-400 border-transparent')
-                      }
-                      ${selectedDate === day.date 
-                        ? (isDark 
-                            ? 'ring-2 ring-[#ffa502] shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
-                            : 'ring-2 ring-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]')
-                        : ''
-                      }
-                      ${day.date === new Date().toISOString().split('T')[0]
-                        ? (isDark 
-                            ? 'border-[#ffa502]/50 bg-[#ffa502]/5' 
-                            : 'border-blue-500/50 bg-blue-50')
-                        : ''
-                      }
-                    `}
-                  >
-                    <div className="h-full flex flex-col justify-between">
-                      <span className={`${!day.isCurrentMonth && 'opacity-40'}`}>{day.day}</span>
-                      <div className="flex flex-col gap-0.5">
-                        {day.income > 0 && (
-                          <span className={`text-[9px] font-medium truncate ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>
-                            +{formatCurrency(day.income).replace(/[^0-9.,]/g, '').substring(0, 6)}
-                          </span>
-                        )}
-                        {day.expense > 0 && (
-                          <span className={`text-[9px] font-medium truncate ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>
-                            -{formatCurrency(day.expense).replace(/[^0-9.,]/g, '').substring(0, 6)}
-                          </span>
-                        )}
+              <div className="overflow-x-auto">
+                <div className="min-w-[320px]">
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {weekDays.map((day) => (
+                      <div key={day} className={`py-2 text-center text-[11px] font-mono uppercase tracking-wider ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                        {day}
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    ))}
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {calendarDays.map((day, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedDate(day.date)}
+                        className={`
+                          min-h-[78px] rounded-2xl border p-2 text-left transition-all sm:aspect-square sm:p-2.5
+                          ${day.isCurrentMonth
+                            ? (isDark 
+                                ? 'bg-[#0a0a0a] hover:bg-[#1a1a1a] border-[#252525] text-white' 
+                                : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-900')
+                            : (isDark 
+                                ? 'bg-[#0f0f0f] text-[#555555] border-transparent' 
+                                : 'bg-gray-50 text-gray-400 border-transparent')
+                          }
+                          ${selectedDate === day.date 
+                            ? (isDark 
+                                ? 'ring-2 ring-[#ffa502] shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
+                                : 'ring-2 ring-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]')
+                            : ''
+                          }
+                          ${day.date === new Date().toISOString().split('T')[0]
+                            ? (isDark 
+                                ? 'border-[#ffa502]/50 bg-[#ffa502]/5' 
+                                : 'border-blue-500/50 bg-blue-50')
+                            : ''
+                          }
+                        `}
+                      >
+                        <div className="flex h-full flex-col justify-between">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className={`text-sm font-semibold ${!day.isCurrentMonth ? 'opacity-40' : ''}`}>{day.day}</span>
+                            <div className="flex items-center gap-1 sm:hidden">
+                              {day.income > 0 && <span className={`h-2 w-2 rounded-full ${isDark ? 'bg-[#00d084]' : 'bg-green-500'}`} />}
+                              {day.expense > 0 && <span className={`h-2 w-2 rounded-full ${isDark ? 'bg-[#ff4757]' : 'bg-red-500'}`} />}
+                            </div>
+                          </div>
+
+                          <div className="hidden flex-col gap-1 sm:flex">
+                            {day.income > 0 && (
+                              <span className={`text-[10px] font-medium truncate ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>
+                                +{formatCurrency(day.income).replace(/[^0-9.,]/g, '').substring(0, 7)}
+                              </span>
+                            )}
+                            {day.expense > 0 && (
+                              <span className={`text-[10px] font-medium truncate ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>
+                                -{formatCurrency(day.expense).replace(/[^0-9.,]/g, '').substring(0, 7)}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="pt-2 sm:hidden">
+                            <p className={`truncate text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+                              {day.transactions.length > 0
+                                ? `${day.transactions.length} ${language === 'id' ? 'transaksi' : 'items'}`
+                                : '\u00A0'}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Legend */}
-              <div className={`flex items-center gap-4 pt-4 border-t text-xs font-mono ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
+              <div className={`flex flex-wrap items-center gap-4 pt-4 border-t text-xs font-mono ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-[#00d084]' : 'bg-green-500'}`} />
                   <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pemasukan' : 'Income'}</span>
@@ -335,7 +342,7 @@ const Calendar: React.FC = () => {
                 </div>
               ) : selectedDayData.transactions.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className={`font-mono text-sm mb-3 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>[EMPTY] {language === 'id' ? 'Tidak ada transaksi' : 'No transactions'}</p>
+                  <p className={`font-mono text-sm mb-3 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>{language === 'id' ? 'Tidak ada transaksi' : 'No transactions'}</p>
                   <TerminalButton size="sm" onClick={() => navigate('/transactions/new')} glow={false} className={isDark ? 'text-[#ffa502]' : 'text-blue-500'}>
                     <Plus className="h-3 w-3 mr-1" />
                     {language === 'id' ? 'Tambah' : 'Add'}

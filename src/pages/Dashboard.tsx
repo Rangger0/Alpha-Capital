@@ -22,12 +22,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   TerminalCard, 
    
-  TerminalPrompt,
   TerminalBadge,
   TerminalButton,
 } from '@/components/ui/TerminalCard';
 import { CryptoChart } from '@/components/ui/CryptoChart';
 import Layout from '@/components/layout/Layout';
+import PageHeader from '@/components/layout/PageHeader';
 import {
   PieChart as RePieChart,
   Pie,
@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     if (!user) return;
     loadDashboardData();
-  }, [user, timeRange, language]);
+  }, [user, timeRange, language, theme]);
 
   const loadDashboardData = async () => {
     if (!user) return;
@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
         .slice(0, 5);
       setTopExpenses(topExp);
 
-      setRecentTransactions(allTransactions.slice(0,1));
+      setRecentTransactions(allTransactions.slice(0, 5));
 
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -303,10 +303,10 @@ const Dashboard: React.FC = () => {
     }, []);
 
     return (
-      <div className={`flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded border ${isDark ? 'text-[#a0a0a0] bg-[#1a1a1a] border-[#333333]' : 'text-gray-500 bg-gray-100 border-gray-200'}`}>
-        <Clock className={`h-3 w-3 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
-        <span className={isDark ? 'text-white' : 'text-gray-900'}>{time.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-        <span className={isDark ? 'text-[#555555]' : 'text-gray-400'}>|</span>
+      <div className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs ${isDark ? 'border-white/10 bg-white/[0.04] text-zinc-300' : 'border-slate-200 bg-white text-slate-600'}`}>
+        <Clock className={`h-3.5 w-3.5 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
+        <span className={isDark ? 'text-white' : 'text-slate-950'}>{time.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+        <span className={isDark ? 'text-zinc-600' : 'text-slate-300'}>|</span>
         <span>{time.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
       </div>
     );
@@ -314,20 +314,20 @@ const Dashboard: React.FC = () => {
 
   // Time Range Selector
   const TimeRangeSelector: React.FC = () => (
-    <div className={`flex items-center gap-1 p-1 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`}>
+    <div className={`inline-flex items-center gap-1 rounded-full border p-1 ${isDark ? 'border-white/10 bg-white/[0.04]' : 'border-slate-200 bg-white'}`}>
       {(['7days', '30days', 'year'] as TimeRange[]).map((range) => (
         <button
           key={range}
           onClick={() => setTimeRange(range)}
           className={`
-            px-3 py-1.5 rounded text-xs font-mono transition-all duration-200
+            rounded-full px-3.5 py-2 text-xs font-medium transition-all duration-200
             ${timeRange === range 
               ? (isDark 
-                  ? 'bg-[#333333] text-white shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
-                  : 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]')
+                  ? 'bg-amber-500 text-black shadow-[0_10px_25px_rgba(255,165,2,0.22)]' 
+                  : 'bg-blue-600 text-white shadow-[0_10px_25px_rgba(37,99,235,0.18)]')
               : (isDark 
-                  ? 'text-[#a0a0a0] hover:text-white hover:bg-[#252525]'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200')
+                  ? 'text-zinc-300 hover:bg-white/[0.06] hover:text-white'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950')
             }
           `}
         >
@@ -410,46 +410,34 @@ const Dashboard: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
-          <div>
-            <TerminalPrompt 
-              command={t('terminal.dashboard')} 
-              className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}
-            />
-            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {t('dashboard.title')}
-            </h1>
-            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
-              {t('dashboard.subtitle')}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            <DigitalClock />
-            <TerminalButton 
-              onClick={() => navigate('/transactions/new')}
-              glow
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {t('dashboard.addTransaction')}
-            </TerminalButton>
-          </div>
-        </div>
+        <PageHeader
+          eyebrow={language === 'id' ? 'Ringkasan' : 'Overview'}
+          title={t('dashboard.title')}
+          subtitle={t('dashboard.subtitle')}
+          action={(
+            <>
+              <DigitalClock />
+              <TerminalButton onClick={() => navigate('/transactions/new')}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('dashboard.addTransaction')}
+              </TerminalButton>
+            </>
+          )}
+        />
 
         {/* Time Range & Status */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 rounded-[28px] border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <TimeRangeSelector />
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full animate-pulse ${isDark ? 'bg-[#00d084] shadow-[0_0_8px_rgba(0,208,132,0.8)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]'}`} />
-            <span className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+            <div className={`h-2.5 w-2.5 rounded-full animate-pulse ${isDark ? 'bg-[#00d084] shadow-[0_0_8px_rgba(0,208,132,0.8)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]'}`} />
+            <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
               {t('footer.systemOnline')} | {t('footer.version')}
             </span>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <StatCard
             title={t('dashboard.totalBalance')}
             value={formatCurrency(totalBalance)}
@@ -514,7 +502,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           <div className="lg:col-span-2">
             <CryptoChart 
               data={chartData}
@@ -569,7 +557,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           <TerminalCard 
             title="top_expenses" 
             subtitle={t('dashboard.highestExpenseCategories')}

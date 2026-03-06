@@ -38,10 +38,10 @@ import {
 import {
   TerminalCard,
   TerminalButton,
-  TerminalPrompt,
   TerminalBadge,
 } from '@/components/ui/TerminalCard';
 import Layout from '@/components/layout/Layout';
+import PageHeader from '@/components/layout/PageHeader';
 
 const Transactions: React.FC = () => {
   const navigate = useNavigate();
@@ -160,26 +160,17 @@ const Transactions: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className={`flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
-          <div>
-            <TerminalPrompt command="transactions --list --all" className={`mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`} />
-            <h1 className={`text-3xl font-bold tracking-tight font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {language === 'id' ? 'Transaksi' : 'Transactions'}
-            </h1>
-            <p className={`mt-1 font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
-              {language === 'id' ? 'Kelola semua transaksi Anda' : 'Manage all your transactions'}
-            </p>
-          </div>
-
-          <TerminalButton 
-            onClick={() => navigate('/transactions/new')}
-            glow
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
-          </TerminalButton>
-        </div>
+        <PageHeader
+          eyebrow={language === 'id' ? 'Histori Keuangan' : 'Transaction History'}
+          title={language === 'id' ? 'Transaksi' : 'Transactions'}
+          subtitle={language === 'id' ? 'Kelola pemasukan dan pengeluaran dalam satu tampilan yang lebih rapi.' : 'Manage income and expenses in a cleaner single view.'}
+          action={(
+            <TerminalButton onClick={() => navigate('/transactions/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              {language === 'id' ? 'Tambah Transaksi' : 'Add Transaction'}
+            </TerminalButton>
+          )}
+        />
 
         {/* Filters */}
         <TerminalCard 
@@ -287,7 +278,7 @@ const Transactions: React.FC = () => {
                   <Search className={`h-8 w-8 ${isDark ? 'text-[#ffa502]/50' : 'text-blue-500/50'}`} />
                 </div>
                 <h3 className={`text-lg font-mono font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  [404] {language === 'id' ? 'Tidak ada transaksi' : 'No transactions found'}
+                  {language === 'id' ? 'Tidak ada transaksi' : 'No transactions found'}
                 </h3>
                 <p className={`font-mono text-sm mb-4 ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
                   {hasFilters ? (language === 'id' ? 'Coba ubah filter pencarian Anda' : 'Try changing your search filters') : (language === 'id' ? 'Mulai dengan menambahkan transaksi pertama Anda' : 'Start by adding your first transaction')}
@@ -304,13 +295,13 @@ const Transactions: React.FC = () => {
             filteredTransactions.map((transaction, index) => (
               <div key={transaction.id} onClick={() => navigate(`/transactions/edit/${transaction.id}`)} className="cursor-pointer">
                 <TerminalCard title={`${transaction.type}_${index}`} className={isDark ? 'hover:border-[#ffa502]/50' : 'hover:border-blue-500/50'}>
-                  <div className="flex items-center justify-between p-2">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'} ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
+                  <div className="flex flex-col gap-4 p-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className={`mt-0.5 rounded-2xl border p-3 ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'} ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
                         {transaction.type === 'income' ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
+                      <div className="min-w-0">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
                           <span className={`font-semibold font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</span>
                           <Badge className={`text-xs font-mono ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/20 text-[#00d084] hover:bg-[#00d084]/30' : 'bg-green-100 text-green-600 hover:bg-green-200') : (isDark ? 'bg-[#ff4757]/20 text-[#ff4757] hover:bg-[#ff4757]/30' : 'bg-red-100 text-red-600 hover:bg-red-200')}`}>
                             {transaction.type === 'income' ? (language === 'id' ? 'Pemasukan' : 'Income') : (language === 'id' ? 'Pengeluaran' : 'Expense')}
@@ -318,15 +309,15 @@ const Transactions: React.FC = () => {
                         </div>
                         <p className={`text-sm font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{formatDateLang(transaction.date)}</p>
                         {transaction.description && (
-                          <p className={`text-sm mt-1 font-mono ${isDark ? 'text-[#555555]' : 'text-gray-400'}`}>{transaction.description}</p>
+                          <p className={`mt-1 text-sm font-mono ${isDark ? 'text-[#555555]' : 'text-gray-400'}`}>{transaction.description}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:items-end">
                       <span className={`text-lg font-bold font-mono ${transaction.type === 'income' ? (isDark ? 'text-[#fde400]' : 'text-green-600') : (isDark ? 'text-[#ff6200]' : 'text-red-600')}`}>
                         {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                       </span>
-                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-1 self-start sm:self-auto" onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" onClick={() => navigate(`/transactions/edit/${transaction.id}`)} className={isDark ? 'text-[#a0a0a0] hover:text-[#ffa502] hover:bg-[#ffa502]/10' : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50'}>
                           <Edit2 className="h-4 w-4" />
                         </Button>

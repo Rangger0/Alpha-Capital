@@ -1,11 +1,8 @@
 import React, { memo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
-// ==========================================
-// Terminal Card Component
-// ==========================================
 interface TerminalCardProps {
   children: React.ReactNode;
   title?: string;
@@ -17,103 +14,97 @@ interface TerminalCardProps {
   animate?: boolean;
 }
 
+const formatCardTitle = (value?: string) => {
+  if (!value) return '';
+
+  const normalized = value
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return normalized.replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export const TerminalCard: React.FC<TerminalCardProps> = memo(({
   children,
   title,
   subtitle,
   className = '',
-
   showHeader = true,
   glow = true,
-  animate = true,
 }) => {
   const { theme } = useTheme();
   const { currency } = useLanguage();
   const isDark = theme === 'dark';
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.01 });
-
-  const getStatusDotColor = () => {
-    if (isDark) {
-      return currency === 'IDR' ? '#EAB308' : '#3B82F6';
-    }
-    return currency === 'IDR' ? '#000000' : '#3B82F6';
-  };
 
   return (
-    <div
-      ref={animate ? ref : undefined}
-      className={`
-        relative overflow-hidden rounded-lg border backdrop-blur-sm
-        transition-[opacity,transform] duration-300 ease-out transform-gpu will-change-transform
-        ${isDark 
-          ? 'border-[#333333] bg-[#111111]' 
-          : 'border-gray-200 bg-white shadow-sm'}
-        ${glow && isDark ? 'shadow-[0_0_30px_rgba(255,165,2,0.1)]' : ''}
-        ${glow && !isDark ? 'shadow-[0_0_30px_rgba(59,130,246,0.1)]' : ''}
-        ${animate ? (isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4') : ''}
-        ${className}
-      `}
+    <section
+      className={cn(
+        'relative overflow-hidden rounded-[28px] border transition-colors duration-200',
+        isDark
+          ? 'border-white/10 bg-[#0d0d0d] text-white'
+          : 'border-slate-200 bg-white text-slate-950',
+        glow && isDark && 'shadow-[0_18px_45px_rgba(255,165,2,0.08)]',
+        glow && !isDark && 'shadow-[0_18px_45px_rgba(37,99,235,0.08)]',
+        className,
+      )}
     >
-      {showHeader && (
-        <div className={`
-          flex items-center gap-3 px-4 py-3 border-b
-          ${isDark 
-            ? 'border-[#333333] bg-[#1a1a1a]' 
-            : 'border-gray-200 bg-gray-50'}
-        `}>
-          <div className={`
-            flex items-center justify-center w-10 h-6 rounded font-mono text-xs font-bold border
-            ${isDark 
-              ? 'bg-[#ffa502]/20 text-[#ffa502] border-[#ffa502]/30' 
-              : 'bg-blue-100 text-blue-600 border-blue-200'}
-          `}>
-            &gt;_
-          </div>
+      <div
+        className={cn(
+          'absolute inset-x-0 top-0 h-px',
+          isDark
+            ? 'bg-gradient-to-r from-transparent via-amber-400/40 to-transparent'
+            : 'bg-gradient-to-r from-transparent via-blue-500/30 to-transparent',
+        )}
+      />
 
-          {title && (
-            <div className="flex items-center gap-2">
-              <span className={`
-                text-xs font-mono uppercase tracking-wider
-                ${isDark ? 'text-[#ffa502]' : 'text-blue-600'}
-              `}>
-                {title}
-              </span>
+      {showHeader && (
+        <div
+          className={cn(
+            'flex items-center gap-3 border-b px-4 py-3 sm:px-5',
+            isDark ? 'border-white/10 bg-white/[0.02]' : 'border-slate-200 bg-slate-50/90',
+          )}
+        >
+          {(title || subtitle) && (
+            <div className="min-w-0 flex-1">
+              {title && (
+                <p
+                  className={cn(
+                    'truncate text-xs font-semibold uppercase tracking-[0.24em]',
+                    isDark ? 'text-amber-300' : 'text-blue-700',
+                  )}
+                >
+                  {formatCardTitle(title)}
+                </p>
+              )}
               {subtitle && (
-                <span className={`text-xs ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-                  — {subtitle}
-                </span>
+                <p className={cn('truncate text-[11px]', isDark ? 'text-zinc-400' : 'text-slate-500')}>
+                  {subtitle}
+                </p>
               )}
             </div>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
-            <div 
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: getStatusDotColor() }}
-            />
-            <span className={`text-[10px] font-mono font-bold ${isDark ? 'text-[#666666]' : 'text-gray-400'}`}>
-              {currency}
-            </span>
-          </div>
+          <span
+            className={cn(
+              'inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-[0.24em]',
+              isDark
+                ? 'border-white/10 bg-white/[0.03] text-zinc-300'
+                : 'border-slate-200 bg-white text-slate-500',
+            )}
+          >
+            {currency}
+          </span>
         </div>
       )}
 
-      <div className="p-4">
-        {children}
-      </div>
-
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.01]">
-        <div className="w-full h-full bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
-      </div>
-    </div>
+      <div className="p-4 sm:p-5">{children}</div>
+    </section>
   );
 });
 
 TerminalCard.displayName = 'TerminalCard';
 
-// ==========================================
-// Terminal Text Component
-// ==========================================
 interface TerminalTextProps {
   text: string;
   className?: string;
@@ -132,9 +123,9 @@ export const TerminalText: React.FC<TerminalTextProps> = ({
   const isDark = theme === 'dark';
 
   return (
-    <span className={`font-mono ${className}`}>
+    <span className={cn('font-mono', className)}>
       {prefix && (
-        <span className={isDark ? 'text-[#ffa502]' : 'text-blue-500'}>
+        <span className={isDark ? 'text-amber-300' : 'text-blue-600'}>
           {prefix}
         </span>
       )}
@@ -143,40 +134,16 @@ export const TerminalText: React.FC<TerminalTextProps> = ({
   );
 };
 
-// ==========================================
-// Terminal Prompt Component
-// ==========================================
 interface TerminalPromptProps {
   command: string;
   path?: string;
   className?: string;
 }
 
-export const TerminalPrompt: React.FC<TerminalPromptProps> = ({
-  command,
-  path = '',
-  className = '',
-}) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
-  return (
-    <div className={`font-mono text-sm ${className}`}>
-      <span className={isDark ? 'text-[#666666]' : 'text-gray-400'}>➜</span>{' '}
-      <span className={isDark ? 'text-[#ffa502]' : 'text-blue-500'}>
-        {path}
-      </span>{' '}
-      <span className={isDark ? 'text-[#666666]' : 'text-gray-400'}>git:(</span>
-      <span className={isDark ? 'text-[#ff4757]' : 'text-red-500'}>main</span>
-      <span className={isDark ? 'text-[#666666]' : 'text-gray-400'}>)</span>{' '}
-      <span className={isDark ? 'text-white' : 'text-gray-900'}>{command}</span>
-    </div>
-  );
+export const TerminalPrompt: React.FC<TerminalPromptProps> = () => {
+  return null;
 };
 
-// ==========================================
-// Terminal Stat Component
-// ==========================================
 interface TerminalStatProps {
   label: string;
   value: string;
@@ -199,38 +166,38 @@ export const TerminalStat: React.FC<TerminalStatProps> = ({
   if (loading) {
     return (
       <div className="space-y-2">
-        <div className={`h-4 w-24 rounded animate-pulse ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-200'}`} />
-        <div className={`h-8 w-32 rounded animate-pulse ${isDark ? 'bg-[#1a1a1a]' : 'bg-gray-200'}`} />
+        <div className={cn('h-4 w-24 rounded-full animate-pulse', isDark ? 'bg-white/10' : 'bg-slate-200')} />
+        <div className={cn('h-8 w-32 rounded-2xl animate-pulse', isDark ? 'bg-white/10' : 'bg-slate-200')} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <div className="flex items-center gap-2">
-        <span className={`text-xs font-mono uppercase tracking-wider ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+        <span className={cn('text-xs uppercase tracking-[0.18em]', isDark ? 'text-zinc-400' : 'text-slate-500')}>
           {getCurrencySymbol()} {label}
         </span>
         {trend && (
-          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-            trendUp 
-              ? (isDark ? 'text-[#EAB308] bg-[#EAB308]/10' : 'text-yellow-600 bg-yellow-100') 
-              : (isDark ? 'text-[#DC2626] bg-[#DC2626]/10' : 'text-blue-800 bg-blue-100')
-          }`}>
+          <span
+            className={cn(
+              'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium',
+              trendUp
+                ? (isDark ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-600')
+                : (isDark ? 'border-rose-500/30 bg-rose-500/10 text-rose-300' : 'border-rose-200 bg-rose-50 text-rose-600'),
+            )}
+          >
             {trendUp ? '▲' : '▼'} {trend}
           </span>
         )}
       </div>
-      <p className={`text-2xl font-bold font-mono tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      <p className={cn('text-2xl font-semibold tracking-tight', isDark ? 'text-white' : 'text-slate-950')}>
         {value}
       </p>
     </div>
   );
 };
 
-// ==========================================
-// Terminal Badge Component
-// ==========================================
 interface TerminalBadgeProps {
   children: React.ReactNode;
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'income' | 'expense';
@@ -246,43 +213,42 @@ export const TerminalBadge: React.FC<TerminalBadgeProps> = ({
   const isDark = theme === 'dark';
 
   const variants = {
-    default: isDark 
-      ? 'bg-[#1a1a1a] text-[#ffa502] border-[#333333]' 
-      : 'bg-gray-100 text-blue-600 border-gray-200',
-    success: isDark 
-      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30'
-      : 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    warning: isDark 
-      ? 'bg-[#ffa502]/10 text-[#ffa502] border-[#ffa502]/30' 
-      : 'bg-yellow-100 text-yellow-600 border-yellow-200',
-    danger: isDark 
-      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30'
-      : 'bg-blue-900 text-white border-blue-800',
-    info: isDark 
-      ? 'bg-[#3742fa]/10 text-[#3742fa] border-[#3742fa]/30' 
-      : 'bg-blue-100 text-blue-600 border-blue-200',
-    income: isDark 
-      ? 'bg-[#EAB308]/10 text-[#EAB308] border-[#EAB308]/30'
-      : 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    expense: isDark 
-      ? 'bg-[#DC2626]/10 text-[#DC2626] border-[#DC2626]/30'
-      : 'bg-blue-900 text-white border-blue-800',
+    default: isDark
+      ? 'border-white/10 bg-white/[0.04] text-zinc-300'
+      : 'border-slate-200 bg-slate-100 text-slate-700',
+    success: isDark
+      ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300'
+      : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    warning: isDark
+      ? 'border-amber-500/25 bg-amber-500/10 text-amber-300'
+      : 'border-amber-200 bg-amber-50 text-amber-700',
+    danger: isDark
+      ? 'border-rose-500/25 bg-rose-500/10 text-rose-300'
+      : 'border-rose-200 bg-rose-50 text-rose-700',
+    info: isDark
+      ? 'border-blue-500/25 bg-blue-500/10 text-blue-300'
+      : 'border-blue-200 bg-blue-50 text-blue-700',
+    income: isDark
+      ? 'border-yellow-500/25 bg-yellow-500/10 text-yellow-300'
+      : 'border-yellow-200 bg-yellow-50 text-yellow-700',
+    expense: isDark
+      ? 'border-rose-500/25 bg-rose-500/10 text-rose-300'
+      : 'border-blue-200 bg-blue-50 text-blue-700',
   };
 
   return (
-    <span className={`
-      inline-flex items-center px-2 py-0.5 rounded text-xs font-mono border
-      ${variants[variant]}
-      ${className}
-    `}>
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium',
+        variants[variant],
+        className,
+      )}
+    >
       {children}
     </span>
   );
 };
 
-// ==========================================
-// Terminal Button Component
-// ==========================================
 interface TerminalButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'ghost';
@@ -302,41 +268,40 @@ export const TerminalButton: React.FC<TerminalButtonProps> = ({
   const isDark = theme === 'dark';
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    sm: 'h-10 px-4 text-sm',
+    md: 'h-11 px-5 text-sm',
+    lg: 'h-12 px-6 text-base',
   };
 
   const variants = {
     primary: isDark
       ? 'bg-[#ffa502] text-black hover:bg-[#ffb52e]'
-      : 'bg-blue-500 text-white hover:bg-blue-600',
+      : 'bg-blue-600 text-white hover:bg-blue-700',
     secondary: isDark
-      ? 'bg-[#1a1a1a] text-white border border-[#333333] hover:bg-[#252525]'
-      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200',
+      ? 'border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]'
+      : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
     ghost: isDark
-      ? 'text-[#a0a0a0] hover:text-white hover:bg-[#1a1a1a]'
-      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+      ? 'text-zinc-300 hover:bg-white/[0.04] hover:text-white'
+      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950',
   };
 
   const glowStyles = {
-    primary: isDark 
-      ? 'shadow-[0_0_20px_rgba(255,165,2,0.3)] hover:shadow-[0_0_30px_rgba(255,165,2,0.5)]'
-      : 'shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]',
+    primary: isDark
+      ? 'shadow-[0_10px_30px_rgba(255,165,2,0.22)]'
+      : 'shadow-[0_10px_30px_rgba(37,99,235,0.18)]',
     secondary: '',
     ghost: '',
   };
 
   return (
     <button
-      className={`
-        font-mono font-medium rounded transition-all duration-200
-        ${sizes[size]}
-        ${variants[variant]}
-        ${glow ? glowStyles[variant] : ''}
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${className}
-      `}
+      className={cn(
+        'inline-flex items-center justify-center rounded-2xl font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50',
+        sizes[size],
+        variants[variant],
+        glow ? glowStyles[variant] : '',
+        className,
+      )}
       {...props}
     >
       {children}
@@ -344,5 +309,4 @@ export const TerminalButton: React.FC<TerminalButtonProps> = ({
   );
 };
 
-// Default export
 export default TerminalCard;

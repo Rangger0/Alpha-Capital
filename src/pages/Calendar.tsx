@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, TrendingUp, TrendingDown, Calendar as CalendarIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getTransactions } from '@/lib/supabase';
 import type { Transaction } from '@/types';
@@ -27,14 +26,22 @@ interface DayData {
 const Calendar: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { theme } = useTheme();
   const { language, formatCurrency, formatDate: formatDateLang } = useLanguage();
-  const isDark = theme === 'dark';
   const isMobile = useIsMobile();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  const tone = (cssVar: string) => `hsl(var(${cssVar}))`;
+  const toneA = (cssVar: string, alpha = 0.14) => `hsl(var(${cssVar}) / ${alpha})`;
+  const palette = {
+    income: tone('--finance-positive'),
+    expense: tone('--finance-negative'),
+    warning: tone('--finance-warning'),
+    accent: tone('--primary'),
+    muted: tone('--muted-foreground'),
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -138,6 +145,7 @@ const Calendar: React.FC = () => {
 
   const monthTotalIncome = transactions.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const monthTotalExpense = transactions.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const monthBalance = monthTotalIncome - monthTotalExpense;
 
   const monthNames = language === 'id'
     ? ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
@@ -159,19 +167,22 @@ const Calendar: React.FC = () => {
         />
 
         {/* Month Summary */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <TerminalCard title="month_income">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground">
                   {language === 'id' ? 'Total Pemasukan' : 'Total Income'}
                 </span>
-                <p className={`text-2xl font-bold font-mono ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>
+                <p className="text-xl font-bold font-mono text-income">
                   {formatCurrency(monthTotalIncome)}
                 </p>
               </div>
-              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#00d084]' : 'bg-green-50 border-green-200 text-green-600'}`}>
-                <TrendingUp className="h-5 w-5" />
+              <div
+                className="rounded-lg border p-2.5"
+                style={{ backgroundColor: toneA('--finance-positive'), borderColor: toneA('--finance-positive', 0.4), color: palette.income }}
+              >
+                <TrendingUp className="h-4 w-4" />
               </div>
             </div>
           </TerminalCard>
@@ -179,15 +190,18 @@ const Calendar: React.FC = () => {
           <TerminalCard title="month_expense">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground">
                   {language === 'id' ? 'Total Pengeluaran' : 'Total Expense'}
                 </span>
-                <p className={`text-2xl font-bold font-mono ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>
+                <p className="text-xl font-bold font-mono text-expense">
                   {formatCurrency(monthTotalExpense)}
                 </p>
               </div>
-              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#ff4757]' : 'bg-red-50 border-red-200 text-red-600'}`}>
-                <TrendingDown className="h-5 w-5" />
+              <div
+                className="rounded-lg border p-2.5"
+                style={{ backgroundColor: toneA('--finance-negative'), borderColor: toneA('--finance-negative', 0.4), color: palette.expense }}
+              >
+                <TrendingDown className="h-4 w-4" />
               </div>
             </div>
           </TerminalCard>
@@ -195,18 +209,27 @@ const Calendar: React.FC = () => {
           <TerminalCard title="month_balance">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground">
                   {language === 'id' ? 'Selisih' : 'Balance'}
                 </span>
-                <p className={`text-2xl font-bold font-mono ${monthTotalIncome - monthTotalExpense >= 0 ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
-                  {formatCurrency(monthTotalIncome - monthTotalExpense)}
+                <p
+                  className={`text-xl font-bold font-mono ${monthBalance >= 0 ? 'text-income' : 'text-expense'}`}
+                >
+                  {formatCurrency(monthBalance)}
                 </p>
                 <TerminalBadge variant={monthTotalIncome - monthTotalExpense >= 0 ? 'success' : 'danger'}>
                   {monthTotalIncome - monthTotalExpense >= 0 ? (language === 'id' ? 'Surplus' : 'Surplus') : (language === 'id' ? 'Defisit' : 'Deficit')}
                 </TerminalBadge>
               </div>
-              <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'} ${monthTotalIncome - monthTotalExpense >= 0 ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
-                {monthTotalIncome - monthTotalExpense >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
+              <div
+                className="rounded-lg border p-2.5"
+                style={{ 
+                  backgroundColor: monthBalance >= 0 ? toneA('--finance-positive') : toneA('--finance-negative'),
+                  borderColor: monthBalance >= 0 ? toneA('--finance-positive', 0.4) : toneA('--finance-negative', 0.4),
+                  color: monthBalance >= 0 ? palette.income : palette.expense,
+                }}
+              >
+                {monthBalance >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
               </div>
             </div>
           </TerminalCard>
@@ -217,19 +240,19 @@ const Calendar: React.FC = () => {
           <TerminalCard 
             title="calendar_grid" 
             subtitle={`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
-            className="xl:col-span-2"
+            className="xl:col-span-2 max-w-[960px] mx-auto"
           >
             <div className="space-y-4">
               {/* Navigation */}
               <div className="flex items-center justify-between">
-                <h3 className={`text-lg font-bold font-mono sm:text-xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className="text-base font-bold font-mono text-foreground sm:text-lg">
                   {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </h3>
                 <div className="flex gap-2">
-                  <TerminalButton variant="ghost" size="sm" onClick={() => navigateMonth('prev')} glow={false} className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}>
+                  <TerminalButton variant="ghost" size="sm" onClick={() => navigateMonth('prev')} glow={false} className="text-muted-foreground hover:text-foreground">
                     <ChevronLeft className="h-4 w-4" />
                   </TerminalButton>
-                  <TerminalButton variant="ghost" size="sm" onClick={() => navigateMonth('next')} glow={false} className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}>
+                  <TerminalButton variant="ghost" size="sm" onClick={() => navigateMonth('next')} glow={false} className="text-muted-foreground hover:text-foreground">
                     <ChevronRight className="h-4 w-4" />
                   </TerminalButton>
                 </div>
@@ -238,68 +261,54 @@ const Calendar: React.FC = () => {
               {/* Week Days Header */}
               <div className="overflow-x-auto">
                 <div className="min-w-[320px]">
-                  <div className="grid grid-cols-7 gap-1.5">
+                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                     {weekDays.map((day) => (
-                      <div key={day} className={`py-2 text-center text-[11px] font-mono uppercase tracking-wider ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                      <div key={day} className="py-1.5 text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
                         {day}
                       </div>
                     ))}
                   </div>
 
                   {/* Calendar Grid */}
-                  <div className="grid grid-cols-7 gap-1.5">
+                  <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                     {calendarDays.map((day, index) => (
                       <button
                         key={index}
                         onClick={() => setSelectedDate(day.date)}
                         className={`
-                          min-h-[78px] rounded-2xl border p-2 text-left transition-all sm:aspect-square sm:p-2.5
+                          min-h-[66px] rounded-[12px] border p-2 text-left transition-all sm:min-h-[82px] sm:p-2.5 sm:aspect-square
                           ${day.isCurrentMonth
-                            ? (isDark 
-                                ? 'bg-[#0a0a0a] hover:bg-[#1a1a1a] border-[#252525] text-white' 
-                                : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-900')
-                            : (isDark 
-                                ? 'bg-[#0f0f0f] text-[#555555] border-transparent' 
-                                : 'bg-gray-50 text-gray-400 border-transparent')
+                            ? 'bg-card text-foreground hover:bg-muted/70 border-border' 
+                            : 'bg-muted/50 text-muted-foreground border-border'
                           }
-                          ${selectedDate === day.date 
-                            ? (isDark 
-                                ? 'ring-2 ring-[#ffa502] shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
-                                : 'ring-2 ring-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]')
-                            : ''
-                          }
-                          ${day.date === new Date().toISOString().split('T')[0]
-                            ? (isDark 
-                                ? 'border-[#ffa502]/50 bg-[#ffa502]/5' 
-                                : 'border-blue-500/50 bg-blue-50')
-                            : ''
-                          }
+                          ${selectedDate === day.date ? 'ring-2 ring-primary shadow-glow' : ''}
+                          ${day.date === new Date().toISOString().split('T')[0] ? 'border-primary/50 bg-primary/5' : ''}
                         `}
                       >
                         <div className="flex h-full flex-col justify-between">
                           <div className="flex items-start justify-between gap-2">
-                            <span className={`text-sm font-semibold ${!day.isCurrentMonth ? 'opacity-40' : ''}`}>{day.day}</span>
+                            <span className={`text-xs font-semibold ${!day.isCurrentMonth ? 'opacity-40' : ''}`}>{day.day}</span>
                             <div className="flex items-center gap-1 sm:hidden">
-                              {day.income > 0 && <span className={`h-2 w-2 rounded-full ${isDark ? 'bg-[#00d084]' : 'bg-green-500'}`} />}
-                              {day.expense > 0 && <span className={`h-2 w-2 rounded-full ${isDark ? 'bg-[#ff4757]' : 'bg-red-500'}`} />}
+                              {day.income > 0 && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: palette.income }} />}
+                              {day.expense > 0 && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: palette.expense }} />}
                             </div>
                           </div>
 
                           <div className="hidden flex-col gap-1 sm:flex">
                             {day.income > 0 && (
-                              <span className={`text-[10px] font-medium truncate ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>
+                              <span className="text-[9px] font-medium truncate" style={{ color: palette.income }}>
                                 +{formatCurrency(day.income).replace(/[^0-9.,]/g, '').substring(0, 7)}
                               </span>
                             )}
                             {day.expense > 0 && (
-                              <span className={`text-[10px] font-medium truncate ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>
+                              <span className="text-[9px] font-medium truncate" style={{ color: palette.expense }}>
                                 -{formatCurrency(day.expense).replace(/[^0-9.,]/g, '').substring(0, 7)}
                               </span>
                             )}
                           </div>
 
                           <div className="pt-2 sm:hidden">
-                            <p className={`truncate text-[10px] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+                            <p className="truncate text-[9px] text-muted-foreground">
                               {day.transactions.length > 0
                                 ? `${day.transactions.length} ${language === 'id' ? 'transaksi' : 'items'}`
                                 : '\u00A0'}
@@ -313,18 +322,18 @@ const Calendar: React.FC = () => {
               </div>
 
               {/* Legend */}
-              <div className={`flex flex-wrap items-center gap-4 pt-4 border-t text-xs font-mono ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
+              <div className="flex flex-wrap items-center gap-4 border-t border-border pt-4 text-xs font-mono">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-[#00d084]' : 'bg-green-500'}`} />
-                  <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pemasukan' : 'Income'}</span>
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: palette.income }} />
+                  <span className="text-muted-foreground">{language === 'id' ? 'Pemasukan' : 'Income'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${isDark ? 'bg-[#ff4757]' : 'bg-red-500'}`} />
-                  <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: palette.expense }} />
+                  <span className="text-muted-foreground">{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full border ${isDark ? 'border-[#ffa502]' : 'border-blue-500'}`} />
-                  <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Hari ini' : 'Today'}</span>
+                  <div className="h-2 w-2 rounded-full border border-primary" />
+                  <span className="text-muted-foreground">{language === 'id' ? 'Hari ini' : 'Today'}</span>
                 </div>
               </div>
             </div>
@@ -338,67 +347,71 @@ const Calendar: React.FC = () => {
             <div className="min-h-[300px]">
               {!selectedDayData ? (
                 <div className="text-center py-12">
-                  <CalendarIcon className={`h-12 w-12 mx-auto mb-3 opacity-30 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
-                  <p className={`font-mono text-sm mb-1 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>{language === 'id' ? 'Klik tanggal pada kalender' : 'Click a date on the calendar'}</p>
-                  <p className={`font-mono text-xs opacity-70 ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{language === 'id' ? 'untuk melihat transaksi' : 'to view transactions'}</p>
+                  <CalendarIcon className="mx-auto mb-3 h-12 w-12 text-primary opacity-30" />
+                  <p className="mb-1 font-mono text-sm text-muted-foreground">{language === 'id' ? 'Klik tanggal pada kalender' : 'Click a date on the calendar'}</p>
+                  <p className="font-mono text-xs text-muted-foreground/70">{language === 'id' ? 'untuk melihat transaksi' : 'to view transactions'}</p>
                 </div>
               ) : selectedDayData.transactions.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className={`font-mono text-sm mb-3 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>{language === 'id' ? 'Tidak ada transaksi' : 'No transactions'}</p>
-                  <TerminalButton size="sm" onClick={() => navigate('/transactions/new')} glow={false} className={isDark ? 'text-[#ffa502]' : 'text-blue-500'}>
+                  <p className="mb-3 font-mono text-sm text-muted-foreground">{language === 'id' ? 'Tidak ada transaksi' : 'No transactions'}</p>
+                  <TerminalButton size="sm" onClick={() => navigate('/transactions/new')} glow={false} className="text-primary">
                     <Plus className="h-3 w-3 mr-1" />
                     {language === 'id' ? 'Tambah' : 'Add'}
                   </TerminalButton>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {selectedDayData.transactions.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className={`
-                        p-3 rounded border cursor-pointer transition-all
-                        ${transaction.type === 'income'
-                          ? (isDark 
-                              ? 'bg-[#00d084]/5 border-[#00d084]/20 hover:border-[#00d084]/40' 
-                              : 'bg-green-50 border-green-200 hover:border-green-300')
-                          : (isDark 
-                              ? 'bg-[#ff4757]/5 border-[#ff4757]/20 hover:border-[#ff4757]/40' 
-                              : 'bg-red-50 border-red-200 hover:border-red-300')
-                        }
-                      `}
-                      onClick={() => navigate(`/transactions/edit/${transaction.id}`)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/20 text-[#00d084]' : 'bg-green-100 text-green-600') : (isDark ? 'bg-[#ff4757]/20 text-[#ff4757]' : 'bg-red-100 text-red-600')}`}>
-                            {transaction.type === 'income' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                  {selectedDayData.transactions.map((transaction) => {
+                    const isIncomeTx = transaction.type === 'income';
+                    const accentColor = isIncomeTx ? palette.income : palette.expense;
+                    return (
+                      <div
+                        key={transaction.id}
+                        className="cursor-pointer rounded border p-3 transition-all"
+                        style={{
+                          backgroundColor: isIncomeTx ? toneA('--finance-positive', 0.12) : toneA('--finance-negative', 0.12),
+                          borderColor: isIncomeTx ? toneA('--finance-positive', 0.35) : toneA('--finance-negative', 0.35),
+                        }}
+                        onClick={() => navigate(`/transactions/edit/${transaction.id}`)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="rounded p-1.5"
+                              style={{
+                                backgroundColor: isIncomeTx ? toneA('--finance-positive', 0.2) : toneA('--finance-negative', 0.2),
+                                color: accentColor,
+                              }}
+                            >
+                              {isIncomeTx ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                            </div>
+                            <span className="font-mono text-sm font-medium text-foreground">{transaction.category}</span>
                           </div>
-                          <span className={`font-medium text-sm font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</span>
+                          <span className="font-mono text-sm font-semibold" style={{ color: accentColor }}>
+                            {isIncomeTx ? '+' : '-'}{formatCurrency(transaction.amount)}
+                          </span>
                         </div>
-                        <span className={`font-semibold text-sm font-mono ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
-                          {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                        </span>
+                        {transaction.description && (
+                          <p className="ml-7 mt-1 font-mono text-xs text-muted-foreground">{transaction.description}</p>
+                        )}
                       </div>
-                      {transaction.description && (
-                        <p className={`text-xs mt-1 ml-7 font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{transaction.description}</p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
               {selectedDayData && selectedDayData.transactions.length > 0 && (
-                <div className={`mt-4 pt-4 border-t space-y-2 ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
+                <div className="mt-4 space-y-2 border-t border-border pt-4">
                   {selectedDayData.income > 0 && (
                     <div className="flex justify-between text-sm font-mono">
-                      <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pemasukan' : 'Income'}</span>
-                      <span className={`font-medium ${isDark ? 'text-[#00d084]' : 'text-green-600'}`}>+{formatCurrency(selectedDayData.income)}</span>
+                      <span className="text-muted-foreground">{language === 'id' ? 'Pemasukan' : 'Income'}</span>
+                      <span className="font-medium" style={{ color: palette.income }}>+{formatCurrency(selectedDayData.income)}</span>
                     </div>
                   )}
                   {selectedDayData.expense > 0 && (
                     <div className="flex justify-between text-sm font-mono">
-                      <span className={isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}>{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
-                      <span className={`font-medium ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>-{formatCurrency(selectedDayData.expense)}</span>
+                      <span className="text-muted-foreground">{language === 'id' ? 'Pengeluaran' : 'Expense'}</span>
+                      <span className="font-medium" style={{ color: palette.expense }}>-{formatCurrency(selectedDayData.expense)}</span>
                     </div>
                   )}
                 </div>

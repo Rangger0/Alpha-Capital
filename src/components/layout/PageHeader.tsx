@@ -25,7 +25,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <section
       className={cn(
-        'rounded-[28px] border px-4 py-4 sm:px-6 sm:py-5',
+        'rounded-[12px] border px-3 py-2.5 sm:rounded-[18px] sm:px-4 sm:py-3.5',
         isDark
           ? 'border-white/10 bg-[#0d0d0d] text-white'
           : 'border-slate-200 bg-white text-slate-950',
@@ -49,7 +49,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               </div>
             )}
             <div>
-              <h1 className={cn('text-[2rem] font-semibold tracking-tight sm:text-3xl', isDark ? 'text-white' : 'text-slate-950')}>
+              <h1 className={cn('text-lg font-semibold tracking-tight sm:text-xl', isDark ? 'text-white' : 'text-slate-950')}>
                 {title}
               </h1>
               {subtitle && (

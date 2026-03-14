@@ -16,7 +16,7 @@ import {
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { TerminalCard, TerminalBadge } from './TerminalCard';
 
-type TimeRange = '7days' | '30days' | 'year';
+type TimeRange = '1day' | '7days' | '30days' | 'year';
 
 interface ChartData {
   date: string;
@@ -157,6 +157,7 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   };
 
   const timeRangeButtons: { key: TimeRange; label: string }[] = [
+    { key: '1day', label: '1D' },
     { key: '7days', label: '1W' },
     { key: '30days', label: '1M' },
     { key: 'year', label: '1Y' },
@@ -179,8 +180,8 @@ export const CryptoChart: React.FC<CryptoChartProps> = ({
   return (
     <TerminalCard 
       title="cashflow_analysis" 
-      subtitle={`${timeRange === '7days' ? '7 days' : timeRange === '30days' ? '30 days' : '1 year'} timeframe`}
-      className="h-full"
+      subtitle={`${timeRange === '1day' ? '1 day' : timeRange === '7days' ? '7 days' : timeRange === '30days' ? '30 days' : '1 year'} timeframe`}
+      className="h-full overflow-visible"
     >
       {/* Header Stats */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">

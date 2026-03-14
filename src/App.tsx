@@ -14,6 +14,7 @@ const Transactions = lazy(() => import('@/pages/Transactions'));
 const TransactionForm = lazy(() => import('@/pages/TransactionForm'));
 const Calendar = lazy(() => import('@/pages/Calendar'));
 const Reports = lazy(() => import('@/pages/Reports'));
+const CalculatorPage = lazy(() => import('@/pages/Calculator'));
 
 const RouteLoader: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -76,6 +77,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/transactions/new" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
         <Route path="/transactions/edit/:id" element={<ProtectedRoute><TransactionForm /></ProtectedRoute>} />
         <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+        <Route path="/calculator" element={<ProtectedRoute><CalculatorPage /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

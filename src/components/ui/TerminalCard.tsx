@@ -33,36 +33,27 @@ export const TerminalCard: React.FC<TerminalCardProps> = memo(({
   showHeader = true,
   glow = true,
 }) => {
-  const { theme } = useTheme();
   const { currency } = useLanguage();
-  const isDark = theme === 'dark';
 
   return (
     <section
       className={cn(
-        'relative overflow-hidden rounded-[28px] border transition-colors duration-200',
-        isDark
-          ? 'border-white/10 bg-[#0d0d0d] text-white'
-          : 'border-slate-200 bg-white text-slate-950',
-        glow && isDark && 'shadow-[0_18px_45px_rgba(255,165,2,0.08)]',
-        glow && !isDark && 'shadow-[0_18px_45px_rgba(37,99,235,0.08)]',
+        'relative overflow-hidden rounded-[12px] border border-border bg-card text-foreground transition-colors duration-200 sm:rounded-[18px]',
+        glow && 'shadow-[0_10px_26px_rgba(0,0,0,0.12)]',
         className,
       )}
     >
       <div
         className={cn(
           'absolute inset-x-0 top-0 h-px',
-          isDark
-            ? 'bg-gradient-to-r from-transparent via-amber-400/40 to-transparent'
-            : 'bg-gradient-to-r from-transparent via-blue-500/30 to-transparent',
+          'bg-gradient-to-r from-transparent via-primary/50 to-transparent',
         )}
       />
 
       {showHeader && (
         <div
           className={cn(
-            'flex items-center gap-3 border-b px-4 py-3 sm:px-5',
-            isDark ? 'border-white/10 bg-white/[0.02]' : 'border-slate-200 bg-slate-50/90',
+            'flex items-center gap-2 border-b border-border bg-card/60 px-2.5 py-2 sm:px-3.5 sm:py-2.5 backdrop-blur',
           )}
         >
           {(title || subtitle) && (
@@ -70,35 +61,33 @@ export const TerminalCard: React.FC<TerminalCardProps> = memo(({
               {title && (
                 <p
                   className={cn(
-                    'truncate text-xs font-semibold uppercase tracking-[0.24em]',
-                    isDark ? 'text-amber-300' : 'text-blue-700',
+                    'truncate text-[11px] font-semibold uppercase tracking-[0.22em]',
+                    'text-primary',
                   )}
                 >
                   {formatCardTitle(title)}
                 </p>
               )}
               {subtitle && (
-                <p className={cn('truncate text-[11px]', isDark ? 'text-zinc-400' : 'text-slate-500')}>
+                <p className="truncate text-[11px] text-muted-foreground">
                   {subtitle}
                 </p>
               )}
             </div>
           )}
 
-          <span
-            className={cn(
-              'inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-[0.24em]',
-              isDark
-                ? 'border-white/10 bg-white/[0.03] text-zinc-300'
-                : 'border-slate-200 bg-white text-slate-500',
-            )}
-          >
+            <span
+              className={cn(
+                'inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-semibold tracking-[0.22em]',
+                'border-border bg-card text-muted-foreground',
+              )}
+            >
             {currency}
           </span>
         </div>
       )}
 
-      <div className="p-4 sm:p-5">{children}</div>
+      <div className="p-2 sm:p-3">{children}</div>
     </section>
   );
 });
@@ -191,7 +180,7 @@ export const TerminalStat: React.FC<TerminalStatProps> = ({
           </span>
         )}
       </div>
-      <p className={cn('text-2xl font-semibold tracking-tight', isDark ? 'text-white' : 'text-slate-950')}>
+      <p className={cn('text-sm font-semibold tracking-tight sm:text-base', isDark ? 'text-white' : 'text-slate-950')}>
         {value}
       </p>
     </div>
@@ -209,31 +198,14 @@ export const TerminalBadge: React.FC<TerminalBadgeProps> = ({
   variant = 'default',
   className = '',
 }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   const variants = {
-    default: isDark
-      ? 'border-white/10 bg-white/[0.04] text-zinc-300'
-      : 'border-slate-200 bg-slate-100 text-slate-700',
-    success: isDark
-      ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300'
-      : 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    warning: isDark
-      ? 'border-amber-500/25 bg-amber-500/10 text-amber-300'
-      : 'border-amber-200 bg-amber-50 text-amber-700',
-    danger: isDark
-      ? 'border-rose-500/25 bg-rose-500/10 text-rose-300'
-      : 'border-rose-200 bg-rose-50 text-rose-700',
-    info: isDark
-      ? 'border-blue-500/25 bg-blue-500/10 text-blue-300'
-      : 'border-blue-200 bg-blue-50 text-blue-700',
-    income: isDark
-      ? 'border-yellow-500/25 bg-yellow-500/10 text-yellow-300'
-      : 'border-yellow-200 bg-yellow-50 text-yellow-700',
-    expense: isDark
-      ? 'border-rose-500/25 bg-rose-500/10 text-rose-300'
-      : 'border-blue-200 bg-blue-50 text-blue-700',
+    default: 'border-border bg-card/70 text-foreground',
+    success: 'border-transparent bg-[hsl(var(--finance-positive))/0.12] text-[hsl(var(--finance-positive))]',
+    warning: 'border-transparent bg-[hsl(var(--finance-warning))/0.14] text-[hsl(var(--finance-warning))]',
+    danger: 'border-transparent bg-[hsl(var(--finance-negative))/0.14] text-[hsl(var(--finance-negative))]',
+    info: 'border-transparent bg-[hsl(var(--accent))/0.14] text-[hsl(var(--accent))]',
+    income: 'border-transparent bg-[hsl(var(--finance-positive))/0.12] text-[hsl(var(--finance-positive))]',
+    expense: 'border-transparent bg-[hsl(var(--finance-negative))/0.14] text-[hsl(var(--finance-negative))]',
   };
 
   return (
@@ -264,31 +236,20 @@ export const TerminalButton: React.FC<TerminalButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   const sizes = {
-    sm: 'h-10 px-4 text-sm',
-    md: 'h-11 px-5 text-sm',
-    lg: 'h-12 px-6 text-base',
+    sm: 'h-9 px-3 text-xs',
+    md: 'h-10 px-4 text-sm',
+    lg: 'h-11 px-5 text-base',
   };
 
   const variants = {
-    primary: isDark
-      ? 'bg-[#ffa502] text-black hover:bg-[#ffb52e]'
-      : 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: isDark
-      ? 'border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]'
-      : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
-    ghost: isDark
-      ? 'text-zinc-300 hover:bg-white/[0.04] hover:text-white'
-      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+    primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    secondary: 'border border-border bg-card text-foreground hover:bg-muted',
+    ghost: 'text-muted-foreground hover:bg-muted hover:text-foreground',
   };
 
   const glowStyles = {
-    primary: isDark
-      ? 'shadow-[0_10px_30px_rgba(255,165,2,0.22)]'
-      : 'shadow-[0_10px_30px_rgba(37,99,235,0.18)]',
+    primary: 'shadow-[0_10px_30px_rgba(0,0,0,0.18)]',
     secondary: '',
     ghost: '',
   };

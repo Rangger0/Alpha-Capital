@@ -181,46 +181,34 @@ const Transactions: React.FC = () => {
           <div className="space-y-4">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${isDark ? 'text-[#666666]' : 'text-gray-400'}`} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={language === 'id' ? 'Cari transaksi...' : 'Search transactions...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`pl-10 font-mono ${
-                    isDark 
-                      ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502]' 
-                      : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                  }`}
+                  className="pl-10 font-mono bg-card text-foreground border-border focus:border-primary"
                 />
               </div>
 
               <Select value={filterType} onValueChange={(v) => setFilterType(v as any)}>
-                <SelectTrigger className={`w-full lg:w-40 font-mono ${
-                  isDark 
-                    ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502]' 
-                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                }`}>
+                <SelectTrigger className="w-full lg:w-40 font-mono bg-card text-foreground border-border focus:border-primary">
                   <SelectValue placeholder={typeLabels.all} />
                 </SelectTrigger>
-                <SelectContent className={isDark ? 'bg-[#111111] border-[#333333]' : 'bg-white border-gray-200'}>
-                  <SelectItem value="all" className={`font-mono ${isDark ? 'text-white hover:bg-[#1a1a1a]' : 'text-gray-900 hover:bg-gray-100'}`}>{typeLabels.all}</SelectItem>
-                  <SelectItem value="income" className={`font-mono ${isDark ? 'text-[#00d084] hover:bg-[#1a1a1a]' : 'text-green-600 hover:bg-green-50'}`}>{typeLabels.income}</SelectItem>
-                  <SelectItem value="expense" className={`font-mono ${isDark ? 'text-[#ff4757] hover:bg-[#1a1a1a]' : 'text-red-600 hover:bg-red-50'}`}>{typeLabels.expense}</SelectItem>
+                <SelectContent className="border-border bg-card">
+                  <SelectItem value="all" className="font-mono text-foreground hover:bg-muted">{typeLabels.all}</SelectItem>
+                  <SelectItem value="income" className="font-mono text-[hsl(var(--finance-positive))] hover:bg-muted">{typeLabels.income}</SelectItem>
+                  <SelectItem value="expense" className="font-mono text-[hsl(var(--finance-negative))] hover:bg-muted">{typeLabels.expense}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className={`w-full lg:w-48 font-mono ${
-                  isDark 
-                    ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502]' 
-                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                }`}>
+                <SelectTrigger className="w-full lg:w-48 font-mono bg-card text-foreground border-border focus:border-primary">
                   <SelectValue placeholder={language === 'id' ? 'Semua Kategori' : 'All Categories'} />
                 </SelectTrigger>
-                <SelectContent className={isDark ? 'bg-[#111111] border-[#333333]' : 'bg-white border-gray-200'}>
-                  <SelectItem value="all" className={`font-mono ${isDark ? 'text-white hover:bg-[#1a1a1a]' : 'text-gray-900 hover:bg-gray-100'}`}>{language === 'id' ? 'Semua Kategori' : 'All Categories'}</SelectItem>
+                <SelectContent className="border-border bg-card">
+                  <SelectItem value="all" className="font-mono text-foreground hover:bg-muted">{language === 'id' ? 'Semua Kategori' : 'All Categories'}</SelectItem>
                   {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name} className={`font-mono ${isDark ? 'text-white hover:bg-[#1a1a1a]' : 'text-gray-900 hover:bg-gray-100'}`}>
+                    <SelectItem key={cat.id} value={cat.name} className="font-mono text-foreground hover:bg-muted">
                       {cat.name}
                     </SelectItem>
                   ))}
@@ -228,34 +216,30 @@ const Transactions: React.FC = () => {
               </Select>
 
               <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-                <SelectTrigger className={`w-full lg:w-40 font-mono ${
-                  isDark 
-                    ? 'bg-[#0a0a0a] border-[#333333] text-white focus:border-[#ffa502]' 
-                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                }`}>
+                <SelectTrigger className="w-full lg:w-44 font-mono bg-card text-foreground border-border focus:border-primary">
                   <SelectValue placeholder={periodLabels.all} />
                 </SelectTrigger>
-                <SelectContent className={isDark ? 'bg-[#111111] border-[#333333]' : 'bg-white border-gray-200'}>
+                <SelectContent className="border-border bg-card">
                   {Object.entries(periodLabels).map(([key, label]) => (
-                    <SelectItem key={key} value={key} className={`font-mono ${isDark ? 'text-white hover:bg-[#1a1a1a]' : 'text-gray-900 hover:bg-gray-100'}`}>{label}</SelectItem>
+                    <SelectItem key={key} value={key} className="font-mono text-foreground hover:bg-muted">{label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             {hasFilters && (
-              <div className={`flex items-center gap-2 pt-2 border-t ${isDark ? 'border-[#333333]' : 'border-gray-200'}`}>
-                <TerminalBadge variant="default" className={isDark ? 'bg-[#1a1a1a] text-[#ffa502] border-[#333333]' : 'bg-gray-100 text-blue-600 border-gray-200'}>
-                  <Filter className="h-3 w-3 mr-1" />
+              <div className="flex items-center gap-2 border-t border-border pt-2">
+                <TerminalBadge variant="default" className="border-border bg-card/70 text-primary">
+                  <Filter className="mr-1 h-3 w-3" />
                   {filteredTransactions.length} {language === 'id' ? 'hasil' : 'results'}
                 </TerminalBadge>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={clearFilters} 
-                  className={`h-6 px-2 font-mono text-xs ${isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                  className="h-6 px-2 font-mono text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <X className="h-3 w-3 mr-1" />
+                  <X className="mr-1 h-3 w-3" />
                   {language === 'id' ? 'Hapus Filter' : 'Clear Filters'}
                 </Button>
               </div>
@@ -271,27 +255,27 @@ const Transactions: React.FC = () => {
             : `${filteredTransactions.length} ${language === 'id' ? 'transaksi siap dibuka' : 'transactions ready to open'}`}
         >
           {loading ? (
-            <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-slate-200'}`}>
+            <div className="divide-y divide-border/60">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center gap-3 py-4">
-                  <div className={`h-12 w-12 rounded-[18px] animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
+                  <div className="h-12 w-12 rounded-[18px] animate-pulse bg-muted" />
                   <div className="flex-1 space-y-2">
-                    <div className={`h-4 w-32 rounded-full animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
-                    <div className={`h-3 w-44 rounded-full animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
+                    <div className="h-4 w-32 rounded-full animate-pulse bg-muted" />
+                    <div className="h-3 w-44 rounded-full animate-pulse bg-muted" />
                   </div>
-                  <div className={`h-4 w-20 rounded-full animate-pulse ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`} />
+                  <div className="h-4 w-20 rounded-full animate-pulse bg-muted" />
                 </div>
               ))}
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="p-12 text-center">
-              <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${isDark ? 'bg-[#181818]' : 'bg-slate-100'}`}>
-                <Search className={`h-8 w-8 ${isDark ? 'text-[#ffa502]/50' : 'text-blue-500/50'}`} />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <Search className="h-8 w-8 text-primary/60" />
               </div>
-              <h3 className={`mb-1 text-lg font-mono font-medium ${isDark ? 'text-white' : 'text-slate-950'}`}>
+              <h3 className="mb-1 text-lg font-mono font-medium text-foreground">
                 {language === 'id' ? 'Tidak ada transaksi' : 'No transactions found'}
               </h3>
-              <p className={`mb-4 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-slate-500'}`}>
+              <p className="mb-4 font-mono text-sm text-muted-foreground">
                 {hasFilters ? (language === 'id' ? 'Coba ubah filter pencarian Anda' : 'Try changing your search filters') : (language === 'id' ? 'Mulai dengan menambahkan transaksi pertama Anda' : 'Start by adding your first transaction')}
               </p>
               {!hasFilters && (
@@ -302,53 +286,69 @@ const Transactions: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-slate-200'}`}>
+            <div className="divide-y divide-border/70">
               {filteredTransactions.map((transaction) => {
                 const isIncome = transaction.type === 'income';
+                const typeLabelLong = isIncome ? (language === 'id' ? 'Pemasukan' : 'Income') : (language === 'id' ? 'Pengeluaran' : 'Expense');
+                const freqMatch = transaction.description?.match(/\[(harian|mingguan|bulanan|tahunan|daily|weekly|monthly|yearly)\]/i);
+                const freqLabel = (() => {
+                  if (!freqMatch) return null;
+                  const key = freqMatch[1].toLowerCase();
+                  if (['harian', 'daily'].includes(key)) return language === 'id' ? 'Harian' : 'Daily';
+                  if (['mingguan', 'weekly'].includes(key)) return language === 'id' ? 'Mingguan' : 'Weekly';
+                  if (['bulanan', 'monthly'].includes(key)) return language === 'id' ? 'Bulanan' : 'Monthly';
+                  if (['tahunan', 'yearly'].includes(key)) return language === 'id' ? 'Tahunan' : 'Yearly';
+                  return null;
+                })();
+                const cleanDescription = transaction.description?.replace(/\s*\[(harian|mingguan|bulanan|tahunan|daily|weekly|monthly|yearly)\]\s*/i, '').trim();
 
                 return (
-                  <div key={transaction.id} className="flex items-center gap-3 py-4 first:pt-1 last:pb-1">
+                  <div key={transaction.id} className="flex items-center gap-3 py-3 sm:py-4 first:pt-1 last:pb-1">
                     <button
                       type="button"
                       onClick={() => navigate(`/transactions/edit/${transaction.id}`)}
-                      className="group flex min-w-0 flex-1 items-center gap-3 rounded-[24px] px-1 py-1 text-left transition-colors"
+                      className="group flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3 rounded-[20px] sm:rounded-[24px] px-1 py-1 text-left transition-colors"
                     >
-                      <div
-                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] border ${
-                          isIncome
-                            ? (isDark ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-600')
-                            : (isDark ? 'border-rose-500/20 bg-rose-500/10 text-rose-300' : 'border-rose-200 bg-rose-50 text-rose-600')
-                        }`}
-                      >
-                        {isIncome ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
+                      <div className="flex w-10 sm:w-12 flex-col items-center">
+                        <div className="relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
+                          {isIncome
+                            ? <ArrowDownLeft className="relative h-[18px] w-[18px] sm:h-5 sm:w-5 stroke-[2.6] text-[hsl(var(--finance-positive))]" />
+                            : <ArrowUpRight className="relative h-[18px] w-[18px] sm:h-5 sm:w-5 stroke-[2.6] text-[hsl(var(--finance-negative))]" />
+                          }
+                        </div>
                       </div>
 
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <span className={`block truncate text-[13px] font-semibold sm:text-base ${isDark ? 'text-white' : 'text-slate-950'}`}>
+                          {transaction.category}
+                        </span>
+                        <span
+                          className={`block text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                            isIncome
+                              ? 'text-[hsl(var(--finance-positive))]'
+                              : 'text-[hsl(var(--finance-negative))]'
+                          }`}
+                        >
+                          {typeLabelLong}
+                        </span>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`truncate text-sm font-semibold sm:text-base ${isDark ? 'text-white' : 'text-slate-950'}`}>
-                            {transaction.category}
-                          </span>
-                          <span
-                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] ${
-                              isIncome
-                                ? (isDark ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700')
-                                : (isDark ? 'border-rose-500/20 bg-rose-500/10 text-rose-300' : 'border-rose-200 bg-rose-50 text-rose-700')
-                            }`}
-                          >
-                            {isIncome ? (language === 'id' ? 'Masuk' : 'In') : (language === 'id' ? 'Keluar' : 'Out')}
-                          </span>
+                          <p className="truncate font-mono text-xs sm:text-sm text-muted-foreground">
+                            {formatDateLang(transaction.date)}
+                            {cleanDescription ? ` • ${cleanDescription}` : ''}
+                          </p>
+                          {freqLabel && (
+                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-foreground/80">
+                              {freqLabel}
+                            </span>
+                          )}
                         </div>
-                        <p className={`mt-1 truncate font-mono text-xs sm:text-sm ${isDark ? 'text-[#666666]' : 'text-slate-500'}`}>
-                          {formatDateLang(transaction.date)}
-                          {transaction.description ? ` • ${transaction.description}` : ''}
-                        </p>
                       </div>
 
                       <div className="ml-3 shrink-0 text-right">
-                        <p className={`font-mono text-base font-semibold sm:text-lg ${isIncome ? (isDark ? 'text-emerald-300' : 'text-emerald-600') : (isDark ? 'text-rose-300' : 'text-rose-600')}`}>
+                        <p className={`font-mono text-sm sm:text-base font-semibold sm:text-lg ${isIncome ? 'text-[hsl(var(--finance-positive))]' : 'text-[hsl(var(--finance-negative))]'}`}>
                           {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
                         </p>
-                        <p className={`mt-1 text-[11px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
+                        <p className={`mt-1 text-[10px] sm:text-[11px] ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
                           {language === 'id' ? 'Ketuk untuk edit' : 'Tap to edit'}
                         </p>
                       </div>
@@ -357,7 +357,7 @@ const Transactions: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className={isDark ? 'text-[#ff4757] hover:text-[#ff6b6b] hover:bg-[#ff4757]/10' : 'text-rose-500 hover:text-rose-600 hover:bg-rose-50'}
+                      className="text-[hsl(var(--finance-negative))] hover:bg-[hsl(var(--finance-negative))/0.12]"
                       onClick={() => {
                         setTransactionToDelete(transaction);
                         setDeleteDialogOpen(true);
@@ -375,20 +375,20 @@ const Transactions: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className={isDark ? 'border-[#333333] bg-[#111111]' : 'border-gray-200 bg-white'}>
+        <AlertDialogContent className="border-border bg-card">
           <AlertDialogHeader>
-            <AlertDialogTitle className={`font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <AlertDialogTitle className="font-mono text-foreground">
               {language === 'id' ? 'Hapus Transaksi' : 'Delete Transaction'}
             </AlertDialogTitle>
-            <AlertDialogDescription className={`font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
+            <AlertDialogDescription className="font-mono text-muted-foreground">
               {language === 'id' ? 'Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.' : 'Are you sure you want to delete this transaction? This action cannot be undone.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className={`font-mono ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-white hover:bg-[#252525]' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}>
+            <AlertDialogCancel className="font-mono border-border bg-muted text-foreground hover:bg-muted/80">
               {language === 'id' ? 'Batal' : 'Cancel'}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-[#ff4757] hover:bg-[#ff6b6b] font-mono text-white">
+            <AlertDialogAction onClick={handleDelete} className="font-mono bg-[hsl(var(--finance-negative))] text-primary-foreground hover:bg-[hsl(var(--finance-negative))/0.9]">
               {language === 'id' ? 'Hapus' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>

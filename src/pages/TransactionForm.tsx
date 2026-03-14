@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, FileText, Sparkles, Tags } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { addTransaction, updateTransaction, getTransactions, getCategories, addCategory } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -31,22 +30,26 @@ import {
 import Layout from '@/components/layout/Layout';
 import PageHeader from '@/components/layout/PageHeader';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const TransactionForm: React.FC = () => {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { user } = useAuth();
-  const { theme } = useTheme();
   const { language } = useLanguage();
+  const { theme } = useTheme();
   const isEdit = Boolean(id);
   const isDark = theme === 'dark';
+
+  type RepeatInterval = 'once' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [repeatInterval, setRepeatInterval] = useState<RepeatInterval>('once');
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -75,6 +78,24 @@ const TransactionForm: React.FC = () => {
     }
   };
 
+  const stripFrequencyTag = (text: string) => {
+    const freqMap: Record<string, RepeatInterval> = {
+      harian: 'daily',
+      daily: 'daily',
+      mingguan: 'weekly',
+      weekly: 'weekly',
+      bulanan: 'monthly',
+      monthly: 'monthly',
+      tahunan: 'yearly',
+      yearly: 'yearly',
+    };
+    const match = text.match(/\[(harian|mingguan|bulanan|tahunan|daily|weekly|monthly|yearly)\]/i);
+    if (!match) return { clean: text, freq: 'once' as RepeatInterval };
+    const freq = freqMap[match[1].toLowerCase()];
+    const clean = text.replace(match[0], '').trim();
+    return { clean, freq };
+  };
+
   const loadTransaction = async () => {
     if (!user || !id) return;
     try {
@@ -84,7 +105,9 @@ const TransactionForm: React.FC = () => {
         setType(transaction.type);
         setAmount(transaction.amount.toString());
         setCategory(transaction.category);
-        setDescription(transaction.description || '');
+        const { clean, freq } = stripFrequencyTag(transaction.description || '');
+        setDescription(clean);
+        setRepeatInterval(freq);
         setDate(transaction.date);
       }
     } catch (err) {
@@ -120,12 +143,22 @@ const TransactionForm: React.FC = () => {
     setLoading(true);
 
     try {
+      const freqLabel = {
+        once: '',
+        daily: language === 'id' ? '[Harian]' : '[Daily]',
+        weekly: language === 'id' ? '[Mingguan]' : '[Weekly]',
+        monthly: language === 'id' ? '[Bulanan]' : '[Monthly]',
+        yearly: language === 'id' ? '[Tahunan]' : '[Yearly]',
+      }[repeatInterval];
+
+      const descriptionWithFreq = `${description || ''} ${freqLabel}`.trim();
+
       const transactionData = {
         user_id: user.id,
         type,
         category,
         amount: amountValue,
-        description,
+        description: descriptionWithFreq,
         date: date,
       };
 
@@ -167,11 +200,9 @@ const TransactionForm: React.FC = () => {
   };
 
   const currencySymbol = language === 'id' ? 'Rp' : '$';
-  const panelTone = isDark ? 'border-white/10 bg-[#111111]' : 'border-slate-200 bg-slate-50/90';
-  const fieldTone = isDark ? 'border-white/10 bg-[#090909]' : 'border-slate-200 bg-white';
-  const inputTone = isDark
-    ? 'border-white/10 bg-[#0c0c0c] text-white placeholder:text-zinc-500 focus-visible:border-amber-400 focus-visible:ring-amber-400/20'
-    : 'border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500/20';
+  const panelTone = 'border-border bg-card/90';
+  const fieldTone = 'border-border bg-card';
+  const inputTone = 'border-border bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20';
   const typeLabel = type === 'income'
     ? (language === 'id' ? 'Pemasukan' : 'Income')
     : (language === 'id' ? 'Pengeluaran' : 'Expense');
@@ -187,9 +218,17 @@ const TransactionForm: React.FC = () => {
     year: 'numeric',
   }).format(new Date(date));
 
+  const repeatLabels: Record<RepeatInterval, string> = {
+    once: language === 'id' ? 'Sekali' : 'One-time',
+    daily: language === 'id' ? 'Harian' : 'Daily',
+    weekly: language === 'id' ? 'Mingguan' : 'Weekly',
+    monthly: language === 'id' ? 'Bulanan' : 'Monthly',
+    yearly: language === 'id' ? 'Tahunan' : 'Yearly',
+  };
+
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="mx-auto max-w-xl space-y-3 px-3 sm:max-w-2xl sm:space-y-4 sm:px-0">
         <PageHeader
           eyebrow={language === 'id' ? 'Formulir Transaksi' : 'Transaction Form'}
           title={isEdit ? (language === 'id' ? 'Edit Transaksi' : 'Edit Transaction') : (language === 'id' ? 'Tambah Transaksi' : 'Add Transaction')}
@@ -213,92 +252,87 @@ const TransactionForm: React.FC = () => {
           title="transaction_designer" 
           subtitle={language === 'id' ? 'alur_transaksi_yang_lebih_halus' : 'smoother_transaction_flow'}
         >
-          <div className="space-y-6 p-1 sm:p-2">
+          <div className="space-y-3 p-1 sm:p-3">
             {error && (
-              <Alert variant="destructive" className={cn(isDark ? 'border-[#ff4757]/50 bg-[#ff4757]/10' : 'border-red-200 bg-red-50')}>
-                <AlertDescription className={`font-mono ${isDark ? 'text-[#ff4757]' : 'text-red-600'}`}>{error}</AlertDescription>
+              <Alert variant="destructive" className="border-border bg-[hsl(var(--finance-negative))/0.1] text-foreground">
+                <AlertDescription className="font-mono text-[hsl(var(--finance-negative))]">{error}</AlertDescription>
               </Alert>
             )}
 
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className={cn('rounded-[24px] border p-4', panelTone)}>
-                <div className="mb-3 flex items-center gap-2">
-                  <Sparkles className={`h-4 w-4 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
-                  <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                    {language === 'id' ? 'Mode Aktif' : 'Active Mode'}
-                  </p>
+            <div className="grid gap-2 md:grid-cols-3 text-foreground">
+              {[{
+                icon: <Sparkles className="h-3.5 w-3.5 text-primary" />,
+                title: language === 'id' ? 'Mode Aktif' : 'Active Mode',
+                main: typeLabel,
+                desc: typeDescription,
+              }, {
+                icon: <ArrowUpRight className="h-3.5 w-3.5 text-primary" />,
+                title: language === 'id' ? 'Preview Nominal' : 'Amount Preview',
+                main: `${type === 'income' ? '+' : '-'}${amountPreview}`,
+                desc: language === 'id' ? 'Nilai siap dicatat.' : 'Ready to be recorded.',
+              }, {
+                icon: <CalendarDays className="h-3.5 w-3.5 text-primary" />,
+                title: language === 'id' ? 'Tanggal' : 'Date',
+                main: formattedDate,
+                desc: language === 'id' ? 'Gunakan tanggal yang paling akurat.' : 'Use the most accurate transaction date.',
+              }].map((card, idx) => (
+                <div key={idx} className={cn('rounded-[14px] border p-3 sm:p-4', panelTone)}>
+                  <div className="mb-2 flex items-center gap-2 text-muted-foreground">
+                    {card.icon}
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">{card.title}</p>
+                  </div>
+                  <p className="text-base font-semibold">{card.main}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{card.desc}</p>
                 </div>
-                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-950'}`}>{typeLabel}</p>
-                <p className={`mt-1 text-sm ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>{typeDescription}</p>
-              </div>
-
-              <div className={cn('rounded-[24px] border p-4', panelTone)}>
-                <div className="mb-3 flex items-center gap-2">
-                  <ArrowUpRight className={`h-4 w-4 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
-                  <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                    {language === 'id' ? 'Preview Nominal' : 'Amount Preview'}
-                  </p>
-                </div>
-                <p className={`text-lg font-semibold ${type === 'income' ? (isDark ? 'text-emerald-300' : 'text-emerald-600') : (isDark ? 'text-rose-300' : 'text-rose-600')}`}>
-                  {type === 'income' ? '+' : '-'}{amountPreview}
-                </p>
-                <p className={`mt-1 text-sm ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  {language === 'id' ? 'Nilai siap dicatat.' : 'Ready to be recorded.'}
-                </p>
-              </div>
-
-              <div className={cn('rounded-[24px] border p-4', panelTone)}>
-                <div className="mb-3 flex items-center gap-2">
-                  <CalendarDays className={`h-4 w-4 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
-                  <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
-                    {language === 'id' ? 'Tanggal' : 'Date'}
-                  </p>
-                </div>
-                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-950'}`}>{formattedDate}</p>
-                <p className={`mt-1 text-sm ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-                  {language === 'id' ? 'Gunakan tanggal yang paling akurat.' : 'Use the most accurate transaction date.'}
-                </p>
-              </div>
+              ))}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               {/* Type Selection */}
               <div className="space-y-2">
                 <Label className={`font-mono text-sm ${isDark ? 'text-[#a0a0a0]' : 'text-gray-600'}`}>
                   {language === 'id' ? 'Jenis Transaksi' : 'Transaction Type'}
                 </Label>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-2.5 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={() => setType('income')}
                     className={cn(
-                      'rounded-[24px] border p-4 text-left transition-all',
+                      'rounded-[14px] border p-3 text-left transition-all',
                       type === 'income'
-                        ? (isDark 
-                            ? 'border-emerald-500/30 bg-emerald-500/12 text-emerald-300 shadow-[0_16px_34px_rgba(16,185,129,0.18)]' 
-                            : 'border-emerald-300 bg-emerald-50 text-emerald-700 shadow-[0_16px_34px_rgba(16,185,129,0.12)]')
-                        : (isDark 
-                            ? 'border-white/10 bg-[#111111] text-zinc-300 hover:border-emerald-500/30 hover:text-white' 
-                            : 'border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:text-slate-950')
+                        ? 'border-[hsl(var(--finance-positive))/0.45] bg-[hsl(var(--finance-positive))/0.12] text-[hsl(var(--finance-positive))] shadow-[0_14px_28px_rgba(0,0,0,0.12)]'
+                        : 'border-border bg-card text-muted-foreground hover:border-[hsl(var(--finance-positive))/0.35] hover:text-foreground'
                       ,
                     )}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-[18px] border ${type === 'income' 
-                        ? (isDark ? 'border-emerald-500/20 bg-emerald-500 text-black' : 'border-emerald-200 bg-emerald-500 text-white')
-                        : (isDark ? 'border-white/10 bg-[#181818]' : 'border-slate-200 bg-slate-100')
-                      }`}>
-                        <ArrowDownLeft className="h-5 w-5" />
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex w-14 flex-col items-center gap-1">
+                        <div className={cn(
+                          'flex h-10 w-10 items-center justify-center',
+                          type === 'income'
+                            ? 'text-[hsl(var(--finance-positive))]'
+                            : 'text-muted-foreground'
+                        )}>
+                          <ArrowDownLeft className="h-4 w-4 stroke-[2.6]" />
+                        </div>
+                        <span className={cn(
+                          'text-[10px] font-semibold uppercase tracking-[0.12em]',
+                          type === 'income'
+                            ? 'text-[hsl(var(--finance-positive))]'
+                            : 'text-muted-foreground'
+                        )}>
+                          {language === 'id' ? 'Masuk' : 'Income'}
+                        </span>
                       </div>
                       {type === 'income' && (
-                        <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${isDark ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-white text-emerald-600'}`}>
+                        <span className="rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] border-[hsl(var(--finance-positive))/0.35] bg-[hsl(var(--finance-positive))/0.10] text-[hsl(var(--finance-positive))]">
                           {language === 'id' ? 'Aktif' : 'Active'}
                         </span>
                       )}
                     </div>
-                    <div className="mt-4 space-y-1">
-                      <p className="font-mono text-base font-semibold">{language === 'id' ? 'Pemasukan' : 'Income'}</p>
-                      <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    <div className="mt-3 space-y-1">
+                      <p className="font-mono text-sm font-semibold">{language === 'id' ? 'Pemasukan' : 'Income'}</p>
+                      <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                         {language === 'id' ? 'Dana masuk ke saldo utama.' : 'Funds flowing into your balance.'}
                       </p>
                     </div>
@@ -307,33 +341,41 @@ const TransactionForm: React.FC = () => {
                     type="button"
                     onClick={() => setType('expense')}
                     className={cn(
-                      'rounded-[24px] border p-4 text-left transition-all',
+                      'rounded-[14px] border p-3 text-left transition-all',
                       type === 'expense'
-                        ? (isDark 
-                            ? 'border-rose-500/30 bg-rose-500/12 text-rose-300 shadow-[0_16px_34px_rgba(244,63,94,0.18)]' 
-                            : 'border-rose-300 bg-rose-50 text-rose-700 shadow-[0_16px_34px_rgba(244,63,94,0.12)]')
-                        : (isDark 
-                            ? 'border-white/10 bg-[#111111] text-zinc-300 hover:border-rose-500/30 hover:text-white' 
-                            : 'border-slate-200 bg-white text-slate-500 hover:border-rose-200 hover:text-slate-950')
+                        ? 'border-[hsl(var(--finance-negative))/0.45] bg-[hsl(var(--finance-negative))/0.12] text-[hsl(var(--finance-negative))] shadow-[0_14px_28px_rgba(0,0,0,0.12)]'
+                        : 'border-border bg-card text-muted-foreground hover:border-[hsl(var(--finance-negative))/0.35] hover:text-foreground'
                       ,
                     )}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-[18px] border ${type === 'expense' 
-                        ? (isDark ? 'border-rose-500/20 bg-rose-500 text-white' : 'border-rose-200 bg-rose-500 text-white')
-                        : (isDark ? 'border-white/10 bg-[#181818]' : 'border-slate-200 bg-slate-100')
-                      }`}>
-                        <ArrowUpRight className="h-5 w-5" />
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex w-14 flex-col items-center gap-1">
+                        <div className={cn(
+                          'flex h-10 w-10 items-center justify-center',
+                          type === 'expense'
+                            ? 'text-[hsl(var(--finance-negative))]'
+                            : 'text-muted-foreground'
+                        )}>
+                          <ArrowUpRight className="h-4 w-4 stroke-[2.6]" />
+                        </div>
+                        <span className={cn(
+                          'text-[10px] font-semibold uppercase tracking-[0.12em]',
+                          type === 'expense'
+                            ? 'text-[hsl(var(--finance-negative))]'
+                            : 'text-muted-foreground'
+                        )}>
+                          {language === 'id' ? 'Keluar' : 'Expense'}
+                        </span>
                       </div>
                       {type === 'expense' && (
-                        <span className={`rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${isDark ? 'border-rose-500/25 bg-rose-500/10 text-rose-300' : 'border-rose-200 bg-white text-rose-600'}`}>
+                        <span className="rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] border-[hsl(var(--finance-negative))/0.35] bg-[hsl(var(--finance-negative))/0.10] text-[hsl(var(--finance-negative))]">
                           {language === 'id' ? 'Aktif' : 'Active'}
                         </span>
                       )}
                     </div>
-                    <div className="mt-4 space-y-1">
-                      <p className="font-mono text-base font-semibold">{language === 'id' ? 'Pengeluaran' : 'Expense'}</p>
-                      <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    <div className="mt-3 space-y-1">
+                      <p className="font-mono text-sm font-semibold">{language === 'id' ? 'Pengeluaran' : 'Expense'}</p>
+                      <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                         {language === 'id' ? 'Dana keluar dari saldo utama.' : 'Funds flowing out of your balance.'}
                       </p>
                     </div>
@@ -341,23 +383,27 @@ const TransactionForm: React.FC = () => {
                 </div>
               </div>
 
-              <section className={cn('rounded-[28px] border p-4 sm:p-5', fieldTone)}>
+              <section className={cn('rounded-[16px] border p-3 sm:p-4', fieldTone)}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+                    <p className={`text-[10px] font-semibold uppercase tracking-[0.2em] ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
                       {language === 'id' ? 'Nominal Utama' : 'Primary Amount'}
                     </p>
-                    <p className={`mt-1 text-sm ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
+                    <p className={`mt-1 text-xs ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
                       {language === 'id' ? 'Masukkan nilai tanpa simbol tambahan.' : 'Enter the numeric value without extra symbols.'}
                     </p>
                   </div>
-                  <span className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${type === 'income' ? (isDark ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700') : (isDark ? 'border-rose-500/25 bg-rose-500/10 text-rose-300' : 'border-rose-200 bg-rose-50 text-rose-700')}`}>
+                  <span className={`rounded-full border px-3 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] ${
+                    type === 'income'
+                      ? 'border-[hsl(var(--finance-positive))/0.35] bg-[hsl(var(--finance-positive))/0.10] text-[hsl(var(--finance-positive))]'
+                      : 'border-[hsl(var(--finance-negative))/0.35] bg-[hsl(var(--finance-negative))/0.10] text-[hsl(var(--finance-negative))]'
+                  }`}>
                     {typeLabel}
                   </span>
                 </div>
-                <div className={cn('mt-4 rounded-[24px] border px-4 py-3 sm:px-5', isDark ? 'border-white/10 bg-black' : 'border-slate-200 bg-slate-50')}>
+                <div className={cn('mt-3 rounded-[14px] border px-3 py-3 sm:px-4', isDark ? 'border-white/10 bg-black' : 'border-slate-200 bg-slate-50')}>
                   <div className="flex items-center gap-3">
-                    <span className={`text-2xl font-semibold ${isDark ? 'text-amber-300' : 'text-blue-600'}`}>{currencySymbol}</span>
+                    <span className={`text-xl font-semibold ${isDark ? 'text-amber-300' : 'text-blue-600'}`}>{currencySymbol}</span>
                     <Input
                       id="amount"
                       type="text"
@@ -366,7 +412,7 @@ const TransactionForm: React.FC = () => {
                       value={amount}
                       onChange={handleAmountChange}
                       className={cn(
-                        'h-auto border-0 bg-transparent p-0 text-3xl font-semibold tracking-tight shadow-none focus-visible:ring-0',
+                        'h-auto border-0 bg-transparent p-0 text-2xl font-semibold tracking-tight shadow-none focus-visible:ring-0',
                         isDark ? 'text-white placeholder:text-zinc-600' : 'text-slate-950 placeholder:text-slate-300',
                       )}
                       required
@@ -378,17 +424,17 @@ const TransactionForm: React.FC = () => {
                 </div>
               </section>
 
-              <div className="grid gap-4 md:grid-cols-[1.35fr_0.85fr]">
-                <section className={cn('rounded-[28px] border p-4', fieldTone)}>
+              <div className="grid gap-3 md:grid-cols-[1.35fr_0.85fr]">
+                <section className={cn('rounded-[16px] border p-3 sm:p-4', fieldTone)}>
                   <div className="flex items-center gap-2">
-                    <Tags className={`h-4 w-4 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
-                    <Label className={`font-mono text-sm ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                    <Tags className={`h-3.5 w-3.5 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
+                    <Label className={`font-mono text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                       {language === 'id' ? 'Kategori' : 'Category'}
                     </Label>
                   </div>
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-2.5 flex gap-2">
                     <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className={cn('h-12 flex-1 rounded-[18px] font-mono', inputTone)}>
+                      <SelectTrigger className={cn('h-10 flex-1 rounded-[14px] font-mono text-sm', inputTone)}>
                         <SelectValue placeholder={language === 'id' ? 'Pilih kategori' : 'Select category'} />
                       </SelectTrigger>
                       <SelectContent className={isDark ? 'bg-[#111111] border-[#333333]' : 'bg-white border-gray-200'}>
@@ -417,7 +463,7 @@ const TransactionForm: React.FC = () => {
                         setNewCategoryDialogOpen(true);
                       }}
                       className={cn(
-                        'h-12 rounded-[18px] px-4 font-mono',
+                        'h-10 rounded-[14px] px-3 font-mono text-sm',
                         isDark ? 'border-white/10 bg-[#141414] text-white hover:bg-[#1d1d1d] hover:border-amber-500/30' : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-white hover:border-blue-300',
                       )}
                     >
@@ -426,10 +472,10 @@ const TransactionForm: React.FC = () => {
                   </div>
                 </section>
 
-                <section className={cn('rounded-[28px] border p-4', fieldTone)}>
+                <section className={cn('rounded-[16px] border p-3 sm:p-4', fieldTone)}>
                   <div className="flex items-center gap-2">
-                    <CalendarDays className={`h-4 w-4 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
-                    <Label htmlFor="date" className={`font-mono text-sm ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                    <CalendarDays className={`h-3.5 w-3.5 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
+                    <Label htmlFor="date" className={`font-mono text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                       {language === 'id' ? 'Tanggal' : 'Date'}
                     </Label>
                   </div>
@@ -438,28 +484,49 @@ const TransactionForm: React.FC = () => {
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className={cn('mt-3 h-12 rounded-[18px] font-mono', inputTone)}
+                    className={cn('mt-2.5 h-10 rounded-[14px] font-mono text-sm', inputTone)}
                     required
                   />
+                </section>
+
+                <section className={cn('rounded-[16px] border p-3 sm:p-4', fieldTone)}>
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className={`h-3.5 w-3.5 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
+                    <Label className={`font-mono text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                      {language === 'id' ? 'Frekuensi' : 'Frequency'}
+                    </Label>
+                  </div>
+                  <Select value={repeatInterval} onValueChange={(v) => setRepeatInterval(v as RepeatInterval)}>
+                    <SelectTrigger className={cn('mt-2.5 h-10 rounded-[14px] font-mono text-sm', inputTone)}>
+                      <SelectValue placeholder={repeatLabels.once} />
+                    </SelectTrigger>
+                    <SelectContent className={isDark ? 'bg-[#111111] border-[#333333]' : 'bg-white border-gray-200'}>
+                      {(Object.keys(repeatLabels) as RepeatInterval[]).map((key) => (
+                        <SelectItem key={key} value={key} className="font-mono">
+                          {repeatLabels[key]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </section>
               </div>
 
               {/* Description */}
-              <section className={cn('rounded-[28px] border p-4', fieldTone)}>
+              <section className={cn('rounded-[16px] border p-3 sm:p-4', fieldTone)}>
                 <div className="flex items-center gap-2">
-                  <FileText className={`h-4 w-4 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
-                  <Label htmlFor="description" className={`font-mono text-sm ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
+                  <FileText className={`h-3.5 w-3.5 ${isDark ? 'text-amber-300' : 'text-blue-600'}`} />
+                  <Label htmlFor="description" className={`font-mono text-xs ${isDark ? 'text-zinc-400' : 'text-slate-600'}`}>
                     {language === 'id' ? 'Deskripsi (Opsional)' : 'Description (Optional)'}
                   </Label>
                 </div>
-                <div className="relative mt-3">
+                <div className="relative mt-2.5">
                   <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={language === 'id' ? 'Tambahkan keterangan...' : 'Add notes...'}
                     className={cn(
-                      'min-h-[120px] w-full resize-none rounded-[20px] border px-4 py-3 text-sm font-mono outline-none',
+                      'min-h-[110px] w-full resize-none rounded-[14px] border px-3 py-2.5 text-sm font-mono outline-none',
                       inputTone,
                     )}
                   />
@@ -467,12 +534,12 @@ const TransactionForm: React.FC = () => {
               </section>
 
               {/* Actions */}
-              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">
+              <div className="flex flex-col-reverse gap-2.5 pt-2 sm:flex-row">
                 <Button
                   type="button"
                   variant="outline"
                   className={cn(
-                    'h-12 flex-1 rounded-[18px] font-mono',
+                    'h-10 flex-1 rounded-[14px] font-mono text-sm',
                     isDark ? 'border-white/10 bg-[#141414] text-white hover:bg-[#1d1d1d]' : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-white',
                   )}
                   onClick={() => navigate('/transactions')}
@@ -482,7 +549,7 @@ const TransactionForm: React.FC = () => {
                 <TerminalButton 
                   type="submit" 
                   className={cn(
-                    'h-12 flex-1 rounded-[18px] text-sm font-semibold tracking-[0.08em]',
+                    'h-10 flex-1 rounded-[14px] text-sm font-semibold tracking-[0.08em]',
                     isDark ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-black hover:brightness-105' : 'bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 text-white hover:brightness-105',
                   )}
                   disabled={loading}

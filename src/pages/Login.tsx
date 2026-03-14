@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthShell from '@/components/auth/AuthShell';
-import { cn } from '@/lib/utils';
 
 const XIcon = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
@@ -96,32 +95,22 @@ const Login = () => {
         <button
           type="button"
           onClick={toggleTheme}
-          className={cn(
-            'flex h-11 items-center gap-2 rounded-2xl border px-4 text-sm font-medium transition-colors',
-            isDark
-              ? 'border-white/10 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.08]'
-              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
-          )}
+          className="flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
           <span>{isDark ? (language === 'id' ? 'Siang' : 'Light') : (language === 'id' ? 'Malam' : 'Dark')}</span>
         </button>
       )}
       footer={(
-        <div className="space-y-5">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2.5">
             {socialLinks.map((social, index) => (
               <a
                 key={index}
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-2xl border transition-colors',
-                  isDark
-                    ? 'border-white/10 bg-white/[0.04] text-zinc-300 hover:bg-white/[0.08] hover:text-white'
-                    : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900',
-                )}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-label={social.label}
               >
                 <social.icon />
@@ -129,31 +118,31 @@ const Login = () => {
             ))}
           </div>
 
-          <div className="text-sm">
-            <span className={isDark ? 'text-zinc-400' : 'text-slate-600'}>
+          <div className="text-xs">
+            <span className="text-muted-foreground">
               {language === 'id' ? 'Belum punya akun?' : "Don't have an account?"}
             </span>{' '}
-            <Link to="/register" className={cn('font-semibold', isDark ? 'text-amber-300 hover:text-amber-200' : 'text-blue-700 hover:text-blue-600')}>
+            <Link to="/register" className="font-semibold text-primary hover:text-primary/80">
               {language === 'id' ? 'Daftar sekarang' : 'Create one now'}
             </Link>
           </div>
 
-          <p className={cn('text-xs', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+          <p className="text-[11px] text-muted-foreground">
             {language === 'id' ? 'Powered by Rose Alpha' : 'Powered by Rose Alpha'}
           </p>
         </div>
       )}
     >
-      <div className="space-y-6">
+      <div className="space-y-5">
         {error && (
-          <Alert variant="destructive" className="rounded-2xl">
+          <Alert variant="destructive" className="rounded-xl">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className={cn('text-sm font-medium', isDark ? 'text-zinc-200' : 'text-slate-700')}>
+            <Label htmlFor="email" className="text-sm font-medium text-foreground">
               Email
             </Label>
             <Input
@@ -162,16 +151,13 @@ const Login = () => {
               placeholder={language === 'id' ? 'nama@email.com' : 'name@email.com'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={cn(
-                'h-12 rounded-2xl px-4',
-                isDark ? 'border-white/10 bg-white/[0.04] text-white placeholder:text-zinc-500' : 'border-slate-200 bg-white text-slate-950 placeholder:text-slate-400',
-              )}
+              className="h-11 rounded-xl border-border bg-card px-3.5 text-sm text-foreground placeholder:text-muted-foreground"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className={cn('text-sm font-medium', isDark ? 'text-zinc-200' : 'text-slate-700')}>
+            <Label htmlFor="password" className="text-sm font-medium text-foreground">
               Password
             </Label>
             <div className="relative">
@@ -181,42 +167,33 @@ const Login = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={cn(
-                  'h-12 rounded-2xl px-4 pr-11',
-                  isDark ? 'border-white/10 bg-white/[0.04] text-white placeholder:text-zinc-500' : 'border-slate-200 bg-white text-slate-950 placeholder:text-slate-400',
-                )}
+                className="h-11 rounded-xl border-border bg-card px-3.5 pr-11 text-sm text-foreground placeholder:text-muted-foreground"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className={cn(
-                  'absolute right-3 top-1/2 -translate-y-1/2 transition-colors',
-                  isDark ? 'text-zinc-500 hover:text-white' : 'text-slate-400 hover:text-slate-900',
-                )}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
             </div>
           </div>
 
           <Button
             type="submit"
-            className={cn(
-              'h-12 w-full rounded-2xl text-sm font-semibold',
-              isDark ? 'bg-[#ffa502] text-black hover:bg-[#ffb52e]' : 'bg-blue-600 text-white hover:bg-blue-700',
-            )}
+            className="h-11 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             disabled={loading}
           >
             {loading ? (language === 'id' ? 'Memproses...' : 'Signing in...') : (language === 'id' ? 'Masuk' : 'Sign In')}
           </Button>
         </form>
 
-        <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2.5 text-xs sm:flex-row sm:items-center">
           <button
             type="button"
             onClick={() => setResetDialogOpen(true)}
-            className={cn('text-left transition-colors', isDark ? 'text-zinc-400 hover:text-white' : 'text-slate-600 hover:text-slate-950')}
+            className="text-left text-muted-foreground transition-colors hover:text-foreground"
           >
             {language === 'id' ? 'Lupa password?' : 'Forgot password?'}
           </button>
@@ -224,10 +201,10 @@ const Login = () => {
       </div>
 
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <DialogContent className={cn('sm:max-w-md rounded-[28px]', isDark ? 'border-white/10 bg-[#0b0b0b] text-white' : 'border-slate-200 bg-white text-slate-950')}>
+        <DialogContent className="sm:max-w-md rounded-[28px] border-border bg-card text-foreground">
           <DialogHeader>
             <DialogTitle>{language === 'id' ? 'Reset Password' : 'Reset Password'}</DialogTitle>
-            <DialogDescription className={isDark ? 'text-zinc-400' : 'text-slate-600'}>
+            <DialogDescription className="text-muted-foreground">
               {language === 'id' ? 'Masukkan email untuk menerima link reset.' : 'Enter your email to receive a reset link.'}
             </DialogDescription>
           </DialogHeader>
@@ -241,14 +218,14 @@ const Login = () => {
           ) : (
             <form onSubmit={handleResetPassword} className="mt-4 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
+                <Label htmlFor="reset-email" className="text-foreground">Email</Label>
                 <Input
                   id="reset-email"
                   type="email"
                   placeholder={language === 'id' ? 'nama@email.com' : 'name@email.com'}
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
-                  className={cn('h-12 rounded-2xl px-4', isDark ? 'border-white/10 bg-white/[0.04] text-white placeholder:text-zinc-500' : 'border-slate-200 bg-white text-slate-950')}
+                  className="h-12 rounded-2xl border-border bg-card px-4 text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
@@ -256,7 +233,7 @@ const Login = () => {
                 <Button type="button" variant="outline" className="rounded-2xl" onClick={() => setResetDialogOpen(false)}>
                   {language === 'id' ? 'Batal' : 'Cancel'}
                 </Button>
-                <Button type="submit" className="rounded-2xl">
+                <Button type="submit" className="rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90">
                   {language === 'id' ? 'Kirim' : 'Send'}
                 </Button>
               </DialogFooter>

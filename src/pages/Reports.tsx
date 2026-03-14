@@ -22,7 +22,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-type TimeRange = '7days' | '30days' | 'year';
+type TimeRange = '1day' | '7days' | '30days' | 'year';
 
 interface ReportSummary {
   income: number;
@@ -50,22 +50,43 @@ const Reports: React.FC = () => {
   const { t, language, formatCurrency, formatDate: formatDateLang } = useLanguage();
   const isDark = theme === 'dark';
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [reportType, setReportType] = useState<'daily' | 'monthly' | 'yearly'>('monthly');
+  const [reportType, setReportType] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('');
   const [timeRange, setTimeRange] = useState<TimeRange>('30days');
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Colors
+  const tone = (cssVar: string) => `hsl(var(${cssVar}))`;
+  const toneA = (cssVar: string, alpha: number) => `hsl(var(${cssVar}) / ${alpha})`;
   const colors = {
-    green: isDark ? '#00d084' : '#22c55e',
-    red: isDark ? '#ff4757' : '#ef4444',
-    orange: isDark ? '#ffa502' : '#3b82f6',
-    blue: isDark ? '#3742fa' : '#6366f1',
-    chartColors: isDark 
-      ? ['#00d084', '#ffa502', '#3742fa', '#ff6b6b', '#4ecdc4', '#a55eea', '#26de81']
-      : ['#22c55e', '#3b82f6', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6', '#10b981'],
+    green: tone('--finance-positive'),
+    red: tone('--finance-negative'),
+    chartColors: [
+      tone('--finance-positive'),
+      tone('--primary'),
+      tone('--accent'),
+      tone('--finance-negative'),
+      tone('--finance-warning'),
+      tone('--muted-foreground'),
+    ],
   };
+  const expensePalette = [
+    tone('--finance-negative'),
+    toneA('--finance-negative', 0.85),
+    toneA('--finance-negative', 0.7),
+    toneA('--finance-negative', 0.55),
+    toneA('--finance-negative', 0.4),
+    toneA('--finance-negative', 0.25),
+  ];
+  const incomePalette = [
+    tone('--finance-positive'),
+    toneA('--finance-positive', 0.85),
+    toneA('--finance-positive', 0.7),
+    toneA('--finance-positive', 0.55),
+    toneA('--finance-positive', 0.4),
+    toneA('--finance-positive', 0.25),
+  ];
 
   useEffect(() => {
     if (!user) return;
@@ -113,7 +134,8 @@ const Reports: React.FC = () => {
       const diffDays = Math.floor((now.getTime() - tDate.getTime()) / (1000 * 60 * 60 * 24));
 
       let isBeforeRange = false;
-      if (range === '7days') isBeforeRange = diffDays > 7;
+      if (range === '1day') isBeforeRange = diffDays > 0;
+      else if (range === '7days') isBeforeRange = diffDays > 7;
       else if (range === '30days') isBeforeRange = diffDays > 30;
       else if (range === 'year') isBeforeRange = diffDays > 365;
 
@@ -123,7 +145,21 @@ const Reports: React.FC = () => {
       }
     });
 
-    if (range === '7days') {
+    if (range === '1day') {
+      const dateStr = now.toISOString().split('T')[0];
+      data.push({
+        date: dateStr,
+        label: language === 'id' ? 'Hari ini' : 'Today',
+        income: 0,
+        expense: 0,
+        net: 0,
+        cumulative: runningBalance,
+        high: runningBalance,
+        low: runningBalance,
+        open: runningBalance,
+        close: runningBalance,
+      });
+    } else if (range === '7days') {
       for (let i = 6; i >= 0; i--) {
         const date = new Date(now);
         date.setDate(date.getDate() - i);
@@ -182,7 +218,14 @@ const Reports: React.FC = () => {
     allTransactions.forEach((t) => {
       const tDate = new Date(t.date);
 
-      if (range === '7days') {
+      if (range === '1day') {
+        const dayData = data.find(d => d.date === t.date);
+        if (dayData) {
+          if (t.type === 'income') dayData.income += t.amount;
+          else dayData.expense += t.amount;
+          dayData.net = dayData.income - dayData.expense;
+        }
+      } else if (range === '7days') {
         const dayData = data.find(d => d.date === t.date);
         if (dayData) {
           if (t.type === 'income') dayData.income += t.amount;
@@ -296,6 +339,18 @@ const Reports: React.FC = () => {
         const value = date.toISOString().split('T')[0];
         options.push({ value, label: formatDateLang(value) });
       }
+    } else if (reportType === 'weekly') {
+      for (let i = 0; i < 12; i++) {
+        const end = new Date(now);
+        end.setDate(now.getDate() - i * 7);
+        const start = new Date(end);
+        start.setDate(start.getDate() - 6);
+        const value = `${start.toISOString().split('T')[0]}_${end.toISOString().split('T')[0]}`;
+        const label = language === 'id'
+          ? `Minggu ${i + 1} (${formatDateLang(start.toISOString().split('T')[0])} - ${formatDateLang(end.toISOString().split('T')[0])})`
+          : `Week ${i + 1} (${formatDateLang(start.toISOString().split('T')[0])} - ${formatDateLang(end.toISOString().split('T')[0])})`;
+        options.push({ value, label });
+      }
     } else if (reportType === 'monthly') {
       for (let i = 0; i < 12; i++) {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -316,17 +371,18 @@ const Reports: React.FC = () => {
 
   const reportTypeButtons = {
     daily: language === 'id' ? 'Harian' : 'Daily',
+    weekly: language === 'id' ? 'Mingguan' : 'Weekly',
     monthly: language === 'id' ? 'Bulanan' : 'Monthly',
     yearly: language === 'id' ? 'Tahunan' : 'Yearly',
   };
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <PageHeader
           eyebrow={language === 'id' ? 'Analisis' : 'Analytics'}
           title={t('nav.reports')}
-          subtitle={language === 'id' ? 'Analisis dan ekspor data keuangan dalam tampilan yang lebih ringan.' : 'Analyze and export financial data in a lighter layout.'}
+          subtitle={language === 'id' ? 'Analisis dan ekspor data keuangan' : 'Analyze and export financial data in a lighter layout.'}
           action={(
             <TerminalButton
               onClick={exportToCSV}
@@ -359,13 +415,13 @@ const Reports: React.FC = () => {
               <label className={`block text-xs font-mono uppercase tracking-wider mb-2 ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
                 {language === 'id' ? 'Jenis Laporan' : 'Report Type'}
               </label>
-              <div className="flex gap-2">
-                {(['daily', 'monthly', 'yearly'] as const).map((type) => (
+              <div className="flex flex-wrap gap-2">
+                {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((type) => (
                   <button
                     key={type}
                     onClick={() => setReportType(type)}
                     className={`
-                      px-4 py-2 rounded font-mono text-sm transition-all duration-200
+                      px-4 py-2 rounded font-mono text-sm transition-all duration-200 flex-1 basis-[48%] sm:basis-auto
                       ${reportType === type
                         ? (isDark 
                             ? 'bg-[#333333] text-white shadow-[0_0_10px_rgba(255,165,2,0.3)]' 
@@ -466,110 +522,199 @@ const Reports: React.FC = () => {
               title="category_distribution" 
               subtitle={language === 'id' ? 'visualisasi_data' : 'data_visualization'}
             >
-              <div className={`flex gap-1 p-1 rounded border mb-4 ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`}>
-                {(['expense', 'income'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => {
-                      const element = document.getElementById(`tab-${tab}`);
-                      element?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className={`
-                      flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all
-                      ${tab === 'expense' 
-                        ? (isDark ? 'bg-[#ff4757]/20 text-[#ff4757]' : 'bg-red-100 text-red-600')
-                        : (isDark ? 'bg-[#00d084]/20 text-[#00d084]' : 'bg-green-100 text-green-600')
-                      }
-                    `}
-                  >
-                    {tab === 'expense' ? (language === 'id' ? 'Pengeluaran' : 'Expense') : (language === 'id' ? 'Pemasukan' : 'Income')}
-                  </button>
-                ))}
+              <div className={`flex gap-2 p-1 rounded border mb-4 ${isDark ? 'bg-[#0f172a] border-[#1e293b]' : 'bg-slate-100 border-slate-200'}`}>
+                <button
+                  onClick={() => document.getElementById('tab-expense')?.scrollIntoView({ behavior: 'smooth' })}
+                  className={`flex-1 rounded-md px-4 py-2 font-mono text-xs font-semibold ${
+                    isDark
+                      ? 'bg-[hsl(var(--finance-negative))] text-black'
+                      : 'bg-[hsl(var(--finance-negative))] text-white'
+                  }`}
+                >
+                  {language === 'id' ? 'Pengeluaran' : 'Expense'}
+                </button>
+                <button
+                  onClick={() => document.getElementById('tab-income')?.scrollIntoView({ behavior: 'smooth' })}
+                  className={`flex-1 rounded-md px-4 py-2 font-mono text-xs font-semibold ${
+                    isDark
+                      ? 'bg-[hsl(var(--finance-positive))] text-black'
+                      : 'bg-[hsl(var(--finance-positive))] text-white'
+                  }`}
+                >
+                  {language === 'id' ? 'Pemasukan' : 'Income'}
+                </button>
               </div>
 
-            <div className="space-y-6">
-  <div id="tab-expense">
-    <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#DC2626]/70' : 'text-blue-900/70'}`}>
-      {language === 'id' ? 'Distribusi Pengeluaran' : 'Expense Breakdown'}
-    </h4>
-    {expenseCategories.length > 0 ? (
-      <ResponsiveContainer width="100%" height={200}>
-        <PieChart>
-          <Pie data={expenseCategories} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="amount" nameKey="name">
-            {expenseCategories.map((_, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={isDark 
-                  ? ['#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#FECACA', '#FEE2E2'][index % 6] // Merah (dark)
-                  : ['#1E3A8A', '#1E40AF', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD'][index % 6] // Biru (light)
-                } 
-              />
-            ))}
-          </Pie>
-          <Tooltip 
-            contentStyle={{ 
-              backgroundColor: isDark ? '#111111' : '#ffffff', 
-              border: isDark ? '1px solid #333333' : '1px solid #e2e8f0', 
-              borderRadius: '8px',
-              fontFamily: 'JetBrains Mono',
-              color: isDark ? '#ffffff' : '#0f172a'
-            }} 
-            formatter={(value: number) => formatCurrency(value)} 
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    ) : (
-      <div className={`text-center py-8 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-        {language === 'id' ? 'Tidak ada data pengeluaran' : 'No expense data'}
-      </div>
-    )}
-  </div>
+              <div className="space-y-6">
+                <div id="tab-expense">
+                  <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#DC2626]/70' : 'text-blue-900/70'}`}>
+                    {language === 'id' ? 'Distribusi Pengeluaran' : 'Expense Breakdown'}
+                  </h4>
+                  {expenseCategories.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height={160}>
+                        <PieChart>
+                          <Pie
+                            data={expenseCategories}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={5}
+                            dataKey="amount"
+                            nameKey="name"
+                            label={false}
+                            labelLine={false}
+                          >
+                            {expenseCategories.map((_, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={expensePalette[index % expensePalette.length]} 
+                                fillOpacity={isDark ? 0.85 : 0.9}
+                                stroke={isDark ? tone('--background') : '#ffffff'}
+                                strokeWidth={1.2}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: isDark ? '#0f172a' : '#ffffff', 
+                              border: isDark ? '1px solid #334155' : '1px solid #e2e8f0', 
+                              borderRadius: '8px',
+                              fontFamily: 'JetBrains Mono',
+                              color: isDark ? '#e2e8f0' : '#0f172a'
+                            }} 
+                            formatter={(value: number) => formatCurrency(value)} 
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="mt-3 space-y-2">
+                        {expenseCategories.map((cat, index) => (
+                          <div
+                            key={cat.name}
+                            className="flex items-center justify-between text-sm rounded border px-2 py-1"
+                            style={{
+                              backgroundColor: isDark ? 'rgba(15,23,42,0.35)' : 'rgba(255,255,255,0.92)',
+                              borderColor: isDark ? toneA('--finance-negative', 0.25) : toneA('--finance-negative', 0.2),
+                            }}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className="h-3 w-3 rounded-full ring-1 ring-border shadow-[0_0_4px_currentColor]"
+                                style={{ backgroundColor: expensePalette[index % expensePalette.length] }}
+                              />
+                              <span className={`font-mono text-xs truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{cat.name}</span>
+                            </div>
+                            <span className="font-mono text-xs font-semibold whitespace-nowrap" style={{ color: colors.red }}>
+                              -{formatCurrency(cat.amount)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className={`text-center py-8 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+                      {language === 'id' ? 'Tidak ada data pengeluaran' : 'No expense data'}
+                    </div>
+                  )}
+                </div>
 
-  <div id="tab-income">
-    <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#EAB308]/70' : 'text-yellow-600/70'}`}>
-      {language === 'id' ? 'Distribusi Pemasukan' : 'Income Breakdown'}
-    </h4>
-    {incomeCategories.length > 0 ? (
-      <ResponsiveContainer width="100%" height={200}>
-        <PieChart>
-          <Pie data={incomeCategories} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="amount" nameKey="name">
-            {incomeCategories.map((_, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={['#EAB308', '#F59E0B', '#D97706', '#B45309', '#92400E', '#78350F'][index % 6]} // Kuning (sama dark & light)
-              />
-            ))}
-          </Pie>
-          <Tooltip 
-            contentStyle={{ 
-              backgroundColor: isDark ? '#111111' : '#ffffff', 
-              border: isDark ? '1px solid #333333' : '1px solid #e2e8f0', 
-              borderRadius: '8px',
-              fontFamily: 'JetBrains Mono',
-              color: isDark ? '#ffffff' : '#e1e9fa'
-            }} 
-            formatter={(value: number) => formatCurrency(value)} 
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    ) : (
-      <div className={`text-center py-8 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
-        [NULL] {language === 'id' ? 'Tidak ada data pemasukan' : 'No income data'}
-      </div>
-    )}
-  </div>
-</div>
+                <div id="tab-income">
+                  <h4 className={`text-xs font-mono uppercase tracking-wider mb-3 ${isDark ? 'text-[#EAB308]/70' : 'text-yellow-600/70'}`}>
+                    {language === 'id' ? 'Distribusi Pemasukan' : 'Income Breakdown'}
+                  </h4>
+                  {incomeCategories.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height={160}>
+                        <PieChart>
+                          <Pie
+                            data={incomeCategories}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={5}
+                            dataKey="amount"
+                            nameKey="name"
+                            label={false}
+                            labelLine={false}
+                          >
+                            {incomeCategories.map((_, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={incomePalette[index % incomePalette.length]}
+                                fillOpacity={isDark ? 0.85 : 0.9}
+                                stroke={isDark ? tone('--background') : '#ffffff'}
+                                strokeWidth={1.2}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: isDark ? '#0f172a' : '#ffffff', 
+                              border: isDark ? '1px solid #334155' : '1px solid #e2e8f0', 
+                              borderRadius: '8px',
+                              fontFamily: 'JetBrains Mono',
+                              color: isDark ? '#e2e8f0' : '#0f172a'
+                            }} 
+                            formatter={(value: number) => formatCurrency(value)} 
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="mt-3 space-y-2">
+                        {incomeCategories.map((cat, index) => (
+                          <div
+                            key={cat.name}
+                            className="flex items-center justify-between text-sm rounded border px-2 py-1"
+                            style={{
+                              backgroundColor: isDark ? 'rgba(15,23,42,0.35)' : 'rgba(255,255,255,0.92)',
+                              borderColor: isDark ? toneA('--finance-positive', 0.25) : toneA('--finance-positive', 0.2),
+                            }}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                className="h-3 w-3 rounded-full ring-1 ring-border shadow-[0_0_4px_currentColor]"
+                                style={{ backgroundColor: incomePalette[index % incomePalette.length] }}
+                              />
+                              <span className={`font-mono text-xs truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{cat.name}</span>
+                            </div>
+                            <span className="font-mono text-xs font-semibold whitespace-nowrap" style={{ color: colors.green }}>
+                              +{formatCurrency(cat.amount)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className={`text-center py-8 font-mono text-sm ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+                      [NULL] {language === 'id' ? 'Tidak ada data pemasukan' : 'No income data'}
+                    </div>
+                  )}
+                </div>
+              </div>
             </TerminalCard>
 
             <TerminalCard 
               title="category_detail" 
               subtitle={language === 'id' ? 'breakdown_berdasarkan_tipe' : 'breakdown_by_type'}
             >
-              <div className={`flex gap-1 p-1 rounded border mb-4 ${isDark ? 'bg-[#1a1a1a] border-[#333333]' : 'bg-gray-100 border-gray-200'}`}>
-                <button className={`flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all ${isDark ? 'bg-[#ff4757]/20 text-[#ff4757] hover:bg-[#ff4757]/30' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}>
+              <div className={`flex gap-1 p-1 rounded border mb-4 ${isDark ? 'bg-[#0f172a] border-[#1e293b]' : 'bg-slate-100 border-slate-200'}`}>
+                <button
+                  className="flex-1 px-4 py-2 rounded-md font-mono text-xs font-semibold shadow-sm transition-all"
+                  style={{
+                    backgroundColor: 'hsl(var(--finance-negative))',
+                    color: isDark ? 'hsl(var(--background))' : '#ffffff',
+                  }}
+                >
                   {language === 'id' ? 'Pengeluaran' : 'Expense'}
                 </button>
-                <button className={`flex-1 px-4 py-2 rounded-md font-mono text-xs transition-all ${isDark ? 'bg-[#00d084]/20 text-[#00d084] hover:bg-[#00d084]/30' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}>
+                <button
+                  className="flex-1 px-4 py-2 rounded-md font-mono text-xs font-semibold shadow-sm transition-all"
+                  style={{
+                    backgroundColor: 'hsl(var(--finance-positive))',
+                    color: isDark ? 'hsl(var(--background))' : '#ffffff',
+                  }}
+                >
                   {language === 'id' ? 'Pemasukan' : 'Income'}
                 </button>
               </div>
@@ -584,14 +729,14 @@ const Reports: React.FC = () => {
                       expenseCategories.map((cat, index) => (
                         <div
                           key={cat.name}
-                          className={`flex items-center justify-between p-3 rounded border transition-colors ${
-                            isDark 
-                              ? 'bg-[#ff4757]/5 border-[#ff4757]/20 hover:border-[#ff4757]/40' 
-                              : 'bg-red-50 border-red-200 hover:border-red-300'
-                          }`}
+                          className="flex items-center justify-between p-3 rounded border transition-colors"
+                          style={{
+                            backgroundColor: isDark ? toneA('--finance-negative', 0.08) : toneA('--finance-negative', 0.12),
+                            borderColor: toneA('--finance-negative', isDark ? 0.25 : 0.3),
+                          }}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: colors.chartColors[index % colors.chartColors.length], color: colors.chartColors[index % colors.chartColors.length] }} />
+                            <div className="w-3 h-3 rounded-full shadow-[0_0_6px_currentColor]" style={{ backgroundColor: expensePalette[index % expensePalette.length], color: expensePalette[index % expensePalette.length] }} />
                             <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{cat.name}</span>
                           </div>
                           <span className="font-mono font-semibold" style={{ color: colors.red }}>-{formatCurrency(cat.amount)}</span>
@@ -612,14 +757,14 @@ const Reports: React.FC = () => {
                       incomeCategories.map((cat, index) => (
                         <div
                           key={cat.name}
-                          className={`flex items-center justify-between p-3 rounded border transition-colors ${
-                            isDark 
-                              ? 'bg-[#00d084]/5 border-[#00d084]/20 hover:border-[#00d084]/40' 
-                              : 'bg-green-50 border-green-200 hover:border-green-300'
-                          }`}
+                          className="flex items-center justify-between p-3 rounded border transition-colors"
+                          style={{
+                            backgroundColor: isDark ? toneA('--finance-positive', 0.08) : toneA('--finance-positive', 0.12),
+                            borderColor: toneA('--finance-positive', isDark ? 0.25 : 0.3),
+                          }}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: colors.chartColors[index % colors.chartColors.length], color: colors.chartColors[index % colors.chartColors.length] }} />
+                            <div className="w-3 h-3 rounded-full shadow-[0_0_6px_currentColor]" style={{ backgroundColor: incomePalette[index % incomePalette.length], color: incomePalette[index % incomePalette.length] }} />
                             <span className={`font-mono text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{cat.name}</span>
                           </div>
                           <span className="font-mono font-semibold" style={{ color: colors.green }}>+{formatCurrency(cat.amount)}</span>

@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  Calculator,
   Plus,
   Sun,
   X,
@@ -50,6 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/dashboard', label: language === 'id' ? 'Dashboard' : 'Dashboard', icon: LayoutDashboard },
     { path: '/transactions', label: language === 'id' ? 'Transaksi' : 'Transactions', icon: ArrowLeftRight },
     { path: '/calendar', label: language === 'id' ? 'Kalender' : 'Calendar', icon: CalendarDays },
+    { path: '/calculator', label: language === 'id' ? 'Kalkulator' : 'Calculator', icon: Calculator },
     { path: '/reports', label: language === 'id' ? 'Laporan' : 'Reports', icon: BarChart3 },
   ];
 
@@ -60,25 +62,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
-  const surfaceCard = isDark
-    ? 'border-white/10 bg-[#101010] text-white'
-    : 'border-slate-200 bg-white text-slate-950 shadow-[0_12px_28px_rgba(148,163,184,0.12)]';
-  const sidebarShell = isDark
-    ? 'border-white/10 bg-[#050505] text-white shadow-[22px_0_60px_rgba(0,0,0,0.45)]'
-    : 'border-slate-200 bg-[#f6f8fc] text-slate-950 shadow-[22px_0_60px_rgba(148,163,184,0.18)]';
-  const topbarShell = isDark
-    ? 'border-white/10 bg-[#050505] shadow-[0_16px_36px_rgba(0,0,0,0.42)]'
-    : 'border-slate-200 bg-[#eef3fb] shadow-[0_12px_30px_rgba(148,163,184,0.18)]';
-  const sidebarSection = isDark
-    ? 'border-white/10 bg-[#111111]'
-    : 'border-slate-200 bg-white shadow-[0_16px_40px_rgba(148,163,184,0.12)]';
+  const surfaceCard = 'border-border bg-card text-foreground shadow-[0_12px_28px_rgba(0,0,0,0.16)]';
+  const sidebarShell = 'border border-border bg-card/90 text-foreground shadow-[0_12px_30px_rgba(0,0,0,0.18)] sm:shadow-[0_18px_50px_rgba(0,0,0,0.22)] backdrop-blur-none sm:backdrop-blur-xl will-change-transform';
+  const topbarShell = 'border border-border bg-card/85 shadow-[0_16px_36px_rgba(0,0,0,0.18)]';
+  const sidebarSection = 'border-border bg-card/80 shadow-[0_12px_32px_rgba(0,0,0,0.12)]';
   const mobileContentOffset = isNative
     ? 'calc(4rem + env(safe-area-inset-top) + 0.75rem)'
     : undefined;
 
   const sidebarBody = (
     <div
-      className="flex min-h-full flex-col px-4 pb-6 pt-4 sm:px-5"
+      className="flex min-h-full flex-col px-3 pb-4 pt-3 sm:px-5 sm:pb-6 sm:pt-4"
       style={{
         paddingTop: isNative ? 'max(1rem, env(safe-area-inset-top))' : undefined,
         paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
@@ -107,13 +101,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <p className={cn('text-[11px] font-semibold uppercase tracking-[0.24em]', isDark ? 'text-amber-300' : 'text-blue-700')}>
             Alpha Capital
           </p>
-          <p className={cn('mt-1 text-sm', isDark ? 'text-zinc-400' : 'text-slate-500')}>v1.0.0</p>
+          <p className={cn('mt-1 text-sm', isDark ? 'text-zinc-400' : 'text-slate-500')}>v2.0.0</p>
         </div>
       </button>
 
       <div className={cn('mt-5 rounded-[24px] border p-2.5', sidebarSection)}>
         <div className="mb-2.5 px-2">
-          <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
             {language === 'id' ? 'Navigasi' : 'Navigation'}
           </p>
         </div>
@@ -133,20 +127,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 className={cn(
                   'flex w-full items-center gap-2.5 rounded-[20px] px-2.5 py-2.5 text-left transition-colors',
                   active
-                    ? (isDark
-                        ? 'bg-amber-500/18 text-amber-300'
-                        : 'bg-blue-50 text-blue-700')
-                    : (isDark
-                        ? 'text-zinc-300 hover:bg-white/[0.04] hover:text-white'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'),
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
               >
                 <div
                   className={cn(
                     'flex h-9 w-9 items-center justify-center rounded-[16px] border',
                     active
-                      ? (isDark ? 'border-amber-500/20 bg-amber-500/10' : 'border-blue-200 bg-white')
-                      : (isDark ? 'border-white/10 bg-[#181818]' : 'border-slate-200 bg-slate-50'),
+                      ? 'border-primary/30 bg-primary/10'
+                      : 'border-border bg-card/80',
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -157,9 +147,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <span
                   className={cn(
                     'h-2.5 w-2.5 rounded-full transition-opacity',
-                    active
-                      ? (isDark ? 'bg-amber-400 opacity-100' : 'bg-blue-600 opacity-100')
-                      : 'opacity-0',
+                    active ? 'bg-primary opacity-100' : 'opacity-0',
                   )}
                 />
               </button>
@@ -171,8 +159,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="mt-6">
         <section className={cn('rounded-[28px] border p-4', surfaceCard)}>
           <div className="mb-4 flex items-center gap-2">
-            <Globe className={cn('h-4 w-4', isDark ? 'text-amber-300' : 'text-blue-700')} />
-            <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+            <Globe className="h-4 w-4 text-primary" />
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
               {language === 'id' ? 'Preferensi' : 'Preferences'}
             </p>
           </div>
@@ -181,7 +169,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Globe className={cn('h-3.5 w-3.5', isDark ? 'text-zinc-400' : 'text-slate-500')} />
-                <p className={cn('text-[11px] font-semibold uppercase tracking-[0.22em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                   {language === 'id' ? 'Bahasa' : 'Language'}
                 </p>
               </div>
@@ -192,8 +180,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className={cn(
                     'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
                     language === 'id'
-                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
-                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-muted text-foreground hover:bg-muted/80',
                   )}
                 >
                   🇮🇩 ID
@@ -204,8 +192,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className={cn(
                     'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
                     language === 'en'
-                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
-                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-muted text-foreground hover:bg-muted/80',
                   )}
                 >
                   🇺🇸 EN
@@ -213,12 +201,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             </div>
 
-            <div className={cn('h-px', isDark ? 'bg-white/10' : 'bg-slate-200')} />
+            <div className="h-px bg-border" />
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <DollarSign className={cn('h-3.5 w-3.5', isDark ? 'text-zinc-400' : 'text-slate-500')} />
-                <p className={cn('text-[11px] font-semibold uppercase tracking-[0.22em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+                <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                   {language === 'id' ? 'Mata Uang' : 'Currency'}
                 </p>
               </div>
@@ -229,8 +217,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className={cn(
                     'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
                     currency === 'IDR'
-                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
-                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-muted text-foreground hover:bg-muted/80',
                   )}
                 >
                   🇮🇩 IDR
@@ -241,8 +229,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   className={cn(
                     'rounded-2xl px-3 py-3 text-sm font-medium transition-colors',
                     currency === 'USD'
-                      ? (isDark ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-50 text-blue-700')
-                      : (isDark ? 'bg-white/[0.04] text-zinc-300 hover:bg-white/[0.07]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'),
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-muted text-foreground hover:bg-muted/80',
                   )}
                 >
                   🇺🇸 USD
@@ -263,18 +251,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           )}
         >
           <div>
-            <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-zinc-500' : 'text-slate-500')}>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
               {language === 'id' ? 'Tema' : 'Theme'}
             </p>
-            <p className="mt-1 text-sm font-medium">
+            <p className="mt-1 text-sm font-medium text-foreground">
               {isDark ? (language === 'id' ? 'Mode Gelap' : 'Dark Mode') : (language === 'id' ? 'Mode Terang' : 'Light Mode')}
             </p>
           </div>
           <div
-            className={cn(
-              'flex h-11 w-11 items-center justify-center rounded-2xl border',
-              isDark ? 'border-amber-500/20 bg-amber-500/10 text-amber-300' : 'border-blue-200 bg-blue-50 text-blue-700',
-            )}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 text-primary"
           >
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </div>
@@ -285,21 +270,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           onClick={() => setLogoutDialogOpen(true)}
           className={cn(
             'flex w-full items-center justify-between rounded-[20px] border px-4 py-3 text-left transition-colors',
-            isDark
-              ? 'border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/15'
-              : 'border-rose-200 bg-rose-50/95 text-rose-700 shadow-[0_12px_30px_rgba(251,113,133,0.14)] hover:bg-rose-100',
+            'border-border bg-card text-foreground hover:bg-muted',
           )}
         >
           <div>
-            <p className={cn('text-xs font-semibold uppercase tracking-[0.24em]', isDark ? 'text-rose-200/80' : 'text-rose-500')}>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
               {language === 'id' ? 'Sesi' : 'Session'}
             </p>
-            <p className="mt-1 text-sm font-medium">
+            <p className="mt-1 text-sm font-medium text-foreground">
               {language === 'id' ? 'Keluar dari akun' : 'Sign out of account'}
             </p>
           </div>
-          <div className={cn('flex h-11 w-11 items-center justify-center rounded-2xl', isDark ? 'bg-black/30' : 'bg-white')}>
-            <LogOut className="h-5 w-5" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-card">
+            <LogOut className="h-5 w-5 text-destructive" />
           </div>
         </button>
       </div>
@@ -308,25 +291,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div
-      className={cn('relative min-h-screen overflow-hidden', isDark ? 'bg-[#050505] text-white' : 'bg-[#eef3fb] text-slate-950')}
+      className="relative min-h-screen overflow-hidden bg-background text-foreground"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0px)' }}
     >
       <div
-        className={cn(
-          'pointer-events-none absolute inset-0',
-          isDark
-            ? 'bg-[radial-gradient(circle_at_top_left,rgba(255,165,2,0.10),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,165,2,0.08),transparent_24%)]'
-            : 'bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.10),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(37,99,235,0.08),transparent_26%)]',
-        )}
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsla(var(--primary)/0.14),transparent_30%),radial-gradient(circle_at_bottom_right,hsla(var(--primary)/0.12),transparent_24%)]"
       />
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-[min(86vw,320px)] transform overflow-y-auto overscroll-contain border-r transition-transform duration-200 ease-out lg:w-[280px] lg:translate-x-0',
+          'fixed left-0 right-auto top-3 bottom-3 z-40 w-[min(72vw,268px)] max-h-[calc(100vh-24px)] transform overflow-y-auto overscroll-contain scrollbar-hide transition-transform duration-200 ease-out rounded-[18px] shadow-[0_16px_44px_rgba(0,0,0,0.16)] lg:top-4 lg:bottom-4 lg:w-[260px] lg:max-h-[calc(100vh-32px)] lg:translate-x-0 lg:overflow-hidden lg:rounded-[22px] lg:ml-4',
           sidebarShell,
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          top: isNative ? 'max(0.75rem, env(safe-area-inset-top))' : undefined,
+          bottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+        }}
       >
         {sidebarBody}
       </aside>
@@ -341,7 +323,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       <div
-        className="relative flex min-h-screen flex-col pt-20 lg:pl-[280px] lg:pt-0"
+        className="relative flex min-h-screen flex-col pt-20 lg:pl-[276px] lg:pt-3"
         style={{ paddingTop: mobileContentOffset }}
       >
         <header
@@ -357,11 +339,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 type="button"
                 onClick={() => setSidebarOpen((prev) => !prev)}
                 className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-2xl border transition-colors lg:hidden',
+                  'flex h-9 w-9 items-center justify-center rounded-xl border transition-colors lg:hidden',
                   surfaceCard,
                 )}
               >
-                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </button>
 
               {showQuickAdd && (
@@ -369,30 +351,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   type="button"
                   onClick={() => navigate('/transactions/new')}
                   className={cn(
-                    'inline-flex h-11 items-center gap-2 rounded-[20px] border px-4 text-sm font-semibold tracking-[0.08em] transition-colors',
+                    'inline-flex h-10 items-center gap-2 rounded-[18px] border px-3 text-sm font-semibold tracking-[0.08em] transition-colors',
                     isDark
                       ? 'border-amber-200/15 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-black shadow-[0_14px_34px_rgba(245,158,11,0.28)] hover:brightness-105'
                       : 'border-blue-500/10 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 text-white shadow-[0_14px_34px_rgba(37,99,235,0.22)] hover:brightness-105',
                   )}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5" />
                   <span>{language === 'id' ? 'Tambah' : 'Add'}</span>
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-2xl border transition-colors lg:hidden',
-                  surfaceCard,
-                )}
-              >
-                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </button>
-            </div>
           </div>
         </header>
 

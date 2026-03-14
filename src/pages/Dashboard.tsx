@@ -37,7 +37,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-type TimeRange = '7days' | '30days' | 'year';
+type TimeRange = '1day' | '7days' | '30days' | 'year';
 
 interface ChartData {
   date: string;
@@ -76,15 +76,28 @@ const Dashboard: React.FC = () => {
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [topExpenses, setTopExpenses] = useState<{category: string; amount: number}[]>([]);
 
-  // Colors
+  // Palette derived from CSS variables to keep light/dark in sync
+  const tone = (cssVar: string) => `hsl(var(${cssVar}))`;
+  const toneA = (cssVar: string, alpha = 0.14) => `hsl(var(${cssVar}) / ${alpha})`;
+
   const colors = {
-    green: isDark ? '#00d084' : '#22c55e',
-    red: isDark ? '#ff4757' : '#ef4444',
-    orange: isDark ? '#ffa502' : '#3b82f6',
-    blue: isDark ? '#3742fa' : '#6366f1',
-    chartColors: isDark 
-      ? ['#00d084', '#ffa502', '#3742fa', '#ff6b6b', '#4ecdc4']
-      : ['#22c55e', '#3b82f6', '#6366f1', '#f59e0b', '#ec4899'],
+    green: tone('--finance-positive'),
+    red: tone('--finance-negative'),
+    accent: tone('--primary'),
+    blue: tone('--accent'),
+    chartColors: [
+      tone('--finance-positive'),
+      tone('--primary'),
+      tone('--accent'),
+      tone('--finance-negative'),
+      tone('--muted-foreground'),
+    ],
+    alpha: {
+      green: toneA('--finance-positive'),
+      red: toneA('--finance-negative'),
+      accent: toneA('--primary'),
+      muted: toneA('--muted'),
+    },
   };
 
   const netProfit = totalIncome - totalExpense;
@@ -117,6 +130,7 @@ const Dashboard: React.FC = () => {
         const tDate = new Date(t.date);
         const diffDays = Math.floor((now.getTime() - tDate.getTime()) / (1000 * 60 * 60 * 24));
 
+        if (timeRange === '1day') return diffDays <= 0;
         if (timeRange === '7days') return diffDays <= 7;
         if (timeRange === '30days') return diffDays <= 30;
         if (timeRange === 'year') return diffDays <= 365;
@@ -185,7 +199,8 @@ const Dashboard: React.FC = () => {
       const diffDays = Math.floor((now.getTime() - tDate.getTime()) / (1000 * 60 * 60 * 24));
 
       let isBeforeRange = false;
-      if (range === '7days') isBeforeRange = diffDays > 7;
+      if (range === '1day') isBeforeRange = diffDays > 0;
+      else if (range === '7days') isBeforeRange = diffDays > 7;
       else if (range === '30days') isBeforeRange = diffDays > 30;
       else if (range === 'year') isBeforeRange = diffDays > 365;
 
@@ -195,7 +210,21 @@ const Dashboard: React.FC = () => {
       }
     });
 
-    if (range === '7days') {
+    if (range === '1day') {
+      const dateStr = now.toISOString().split('T')[0];
+      data.push({
+        date: dateStr,
+        label: language === 'id' ? 'Hari ini' : 'Today',
+        income: 0,
+        expense: 0,
+        net: 0,
+        cumulative: runningBalance,
+        high: runningBalance,
+        low: runningBalance,
+        open: runningBalance,
+        close: runningBalance,
+      });
+    } else if (range === '7days') {
       for (let i = 6; i >= 0; i--) {
         const date = new Date(now);
         date.setDate(date.getDate() - i);
@@ -254,7 +283,14 @@ const Dashboard: React.FC = () => {
     transactions.forEach((t) => {
       const tDate = new Date(t.date);
 
-      if (range === '7days') {
+      if (range === '1day') {
+        const dayData = data.find(d => d.date === t.date);
+        if (dayData) {
+          if (t.type === 'income') dayData.income += t.amount;
+          else dayData.expense += t.amount;
+          dayData.net = dayData.income - dayData.expense;
+        }
+      } else if (range === '7days') {
         const dayData = data.find(d => d.date === t.date);
         if (dayData) {
           if (t.type === 'income') dayData.income += t.amount;
@@ -305,35 +341,35 @@ const Dashboard: React.FC = () => {
     }, []);
 
     return (
-      <div className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs ${isDark ? 'border-white/10 bg-white/[0.04] text-zinc-300' : 'border-slate-200 bg-white text-slate-600'}`}>
-        <Clock className={`h-3.5 w-3.5 ${isDark ? 'text-[#ffa502]' : 'text-blue-500'}`} />
-        <span className={isDark ? 'text-white' : 'text-slate-950'}>{time.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-        <span className={isDark ? 'text-zinc-600' : 'text-slate-300'}>|</span>
-        <span>{time.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+      <div className="flex items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur">
+        <Clock className="h-3.5 w-3.5 text-primary" />
+        <span className="text-foreground">
+          {time.toLocaleTimeString(language === 'id' ? 'id-ID' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        </span>
+        <span className="text-muted-foreground">|</span>
+        <span className="text-muted-foreground">
+          {time.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+        </span>
       </div>
     );
   };
 
   // Time Range Selector
   const TimeRangeSelector: React.FC = () => (
-    <div className={`inline-flex items-center gap-1 rounded-full border p-1 ${isDark ? 'border-white/10 bg-white/[0.04]' : 'border-slate-200 bg-white'}`}>
-      {(['7days', '30days', 'year'] as TimeRange[]).map((range) => (
+    <div className="inline-flex items-center gap-1 rounded-full border border-border bg-card/90 p-1 shadow-sm">
+      {[{key:'1day',label:'1D'},{key:'7days',label:'1W'},{key:'30days',label:'1M'},{key:'year',label:'1Y'}].map(({key,label}) => (
         <button
-          key={range}
-          onClick={() => setTimeRange(range)}
+          key={key}
+          onClick={() => setTimeRange(key as TimeRange)}
           className={`
             rounded-full px-3.5 py-2 text-xs font-medium transition-all duration-200
-            ${timeRange === range 
-              ? (isDark 
-                  ? 'bg-amber-500 text-black shadow-[0_10px_25px_rgba(255,165,2,0.22)]' 
-                  : 'bg-blue-600 text-white shadow-[0_10px_25px_rgba(37,99,235,0.18)]')
-              : (isDark 
-                  ? 'text-zinc-300 hover:bg-white/[0.06] hover:text-white'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950')
+            ${timeRange === key 
+              ? 'bg-primary text-primary-foreground shadow-glow'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }
           `}
         >
-          {t(`time.${range}`)}
+          {label}
         </button>
       ))}
     </div>
@@ -382,27 +418,27 @@ const Dashboard: React.FC = () => {
       <div className="flex items-start justify-between">
         <div className="space-y-2 flex-1">
           <div className="flex items-center gap-2">
-            <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+            <span className="text-xs uppercase tracking-wider font-mono text-muted-foreground">
               {title}
             </span>
             {trend && !loading && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${trendUp ? (isDark ? 'text-[#00d084] bg-[#00d084]/10' : 'text-green-600 bg-green-100') : (isDark ? 'text-[#ff4757] bg-[#ff4757]/10' : 'text-red-600 bg-red-100')}`}>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${trendUp ? 'chip-positive' : 'chip-negative'}`}>
                 {trendUp ? '▲' : '▼'} {trend}
               </span>
             )}
           </div>
           {loading ? (
-            <Skeleton className={`h-8 w-32 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+            <Skeleton className="h-8 w-32 bg-muted" />
           ) : (
-            <p className={`text-2xl font-bold font-mono tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <p className="text-2xl font-bold font-mono tracking-tight text-foreground">
               {value}
             </p>
           )}
           {subtitle && !loading && (
-            <p className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{subtitle}</p>
+            <p className="text-xs font-mono text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        <div className={`p-3 rounded border ${isDark ? 'bg-[#1a1a1a] border-[#333333] text-[#ffa502]' : 'bg-gray-100 border-gray-200 text-blue-500'}`}>
+        <div className="p-3 rounded border border-border bg-muted text-primary">
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -439,9 +475,9 @@ const Dashboard: React.FC = () => {
           subtitle={t('dashboard.expenseDistribution')}
         >
           {loading ? (
-            <Skeleton className={`h-64 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+            <Skeleton className="h-64 w-full bg-muted" />
           ) : categoryData.length === 0 ? (
-            <div className={`flex h-64 items-center justify-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+            <div className="flex h-64 items-center justify-center font-mono text-muted-foreground">
               {t('status.no_data')}
             </div>
           ) : (
@@ -449,10 +485,13 @@ const Dashboard: React.FC = () => {
               <ResponsiveContainer width="100%" height={200}>
                 <RePieChart>
                   <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">
-                    {categoryData.map((_, index) => (
+                    {categoryData.map((cat, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={['#EAB308', '#F59E0B', '#D97706', '#B45309'][index % 4]}
+                        fill={cat.color}
+                        stroke={isDark ? tone('--background') : '#ffffff'}
+                        strokeWidth={1.5}
+                        fillOpacity={1}
                       />
                     ))}
                   </Pie>
@@ -462,10 +501,15 @@ const Dashboard: React.FC = () => {
                 {categoryData.slice(0, 4).map((cat) => (
                   <div key={cat.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                      <span className={`max-w-[180px] truncate font-mono text-xs ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>{cat.name}</span>
+                      <div
+                        className="h-3 w-3 rounded-full ring-1 ring-border shadow-[0_0_6px_currentColor]"
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className={`max-w-[180px] truncate font-mono text-xs ${isDark ? 'text-foreground' : 'text-slate-800'}`}>
+                        {cat.name}
+                      </span>
                     </div>
-                    <span className={`font-mono text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatCompactNumber(cat.value)}</span>
+                    <span className="font-mono text-xs font-medium text-foreground">{formatCompactNumber(cat.value)}</span>
                   </div>
                 ))}
               </div>
@@ -480,26 +524,26 @@ const Dashboard: React.FC = () => {
           {loading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+                <Skeleton key={i} className="h-12 w-full bg-muted" />
               ))}
             </div>
           ) : topExpenses.length === 0 ? (
-            <div className={`py-8 text-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+            <div className="py-8 text-center font-mono text-muted-foreground">
               {t('status.no_data')}
             </div>
           ) : (
             <div className="space-y-3">
               {topExpenses.map((expense, index) => (
                 <div key={expense.category} className="flex items-center gap-4">
-                  <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border text-sm font-bold font-mono ${isDark ? 'border-[#333333] bg-[#1a1a1a] text-[#ff4757]' : 'border-gray-200 bg-gray-100 text-red-500'}`}>
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border border-border bg-muted text-sm font-bold font-mono text-destructive">
                     {index + 1}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex items-center justify-between">
-                      <span className={`truncate text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{expense.category}</span>
+                      <span className="truncate text-sm font-medium text-foreground">{expense.category}</span>
                       <span className="text-sm font-mono font-semibold" style={{ color: colors.red }}>{formatCurrency(expense.amount)}</span>
                     </div>
-                    <Progress value={(expense.amount / topExpenses[0].amount) * 100} className={`h-1.5 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+                    <Progress value={(expense.amount / topExpenses[0].amount) * 100} className="h-1.5 bg-muted" />
                   </div>
                 </div>
               ))}
@@ -510,8 +554,11 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col gap-4 rounded-[24px] border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <TimeRangeSelector />
           <div className="flex items-center gap-2">
-            <div className={`h-2.5 w-2.5 rounded-full animate-pulse ${isDark ? 'bg-[#00d084] shadow-[0_0_8px_rgba(0,208,132,0.8)]' : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]'}`} />
-            <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-slate-500'}`}>
+            <div
+              className="h-2.5 w-2.5 rounded-full animate-pulse"
+              style={{ backgroundColor: colors.green, boxShadow: `0 0 10px ${toneA('--finance-positive', 0.6)}` }}
+            />
+            <span className="text-xs text-muted-foreground">
               {t('footer.systemOnline')} | {t('footer.version')}
             </span>
           </div>
@@ -559,25 +606,25 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex items-start justify-between">
               <div className="space-y-2">
-                <span className={`text-xs uppercase tracking-wider font-mono ${isDark ? 'text-[#a0a0a0]' : 'text-gray-500'}`}>
+                <span className="text-xs uppercase tracking-wider font-mono text-muted-foreground">
                   {t('dashboard.savingsRatio')}
                 </span>
                 {loading ? (
-                  <Skeleton className={`h-8 w-32 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+                  <Skeleton className="h-8 w-32 bg-muted" />
                 ) : (
                   <>
-                    <p className={`text-2xl font-bold font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>{savingRatio.toFixed(1)}%</p>
+                    <p className="text-2xl font-bold font-mono text-foreground">{savingRatio.toFixed(1)}%</p>
                     <SavingRatioBadge ratio={savingRatio} />
                   </>
                 )}
               </div>
-              <div className={`rounded border p-3 ${isDark ? 'border-[#333333] bg-[#1a1a1a] text-[#3742fa]' : 'border-gray-200 bg-gray-100 text-indigo-500'}`}>
+              <div className="rounded border border-border bg-muted p-3 text-accent">
                 <PiggyBank className="h-5 w-5" />
               </div>
             </div>
             <Progress 
               value={Math.max(0, Math.min(100, savingRatio))} 
-              className={`mt-4 h-2 ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`}
+              className="mt-4 h-2 bg-muted"
             />
           </TerminalCard>
         </div>
@@ -592,7 +639,7 @@ const Dashboard: React.FC = () => {
               size="sm" 
               onClick={() => navigate('/transactions')}
               glow={false}
-              className={isDark ? 'text-[#a0a0a0] hover:text-white' : 'text-gray-600 hover:text-gray-900'}
+              className="text-muted-foreground hover:text-foreground"
             >
               {t('dashboard.viewAll')} →
             </TerminalButton>
@@ -601,39 +648,45 @@ const Dashboard: React.FC = () => {
           {loading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className={`h-12 w-full ${isDark ? 'bg-[#252525]' : 'bg-gray-200'}`} />
+                <Skeleton key={i} className="h-12 w-full bg-muted" />
               ))}
             </div>
           ) : recentTransactions.length === 0 ? (
-            <div className={`py-8 text-center font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>
+            <div className="py-8 text-center font-mono text-muted-foreground">
               {t('status.no_data')}
             </div>
           ) : (
             <div className="space-y-3">
-              {recentTransactions.map((transaction) => (
-                <div 
-                  key={transaction.id} 
-                  className={`flex cursor-pointer items-center justify-between rounded border p-3 transition-colors ${
-                    isDark 
-                      ? 'border-[#252525] bg-[#1a1a1a] hover:border-[#333333]' 
-                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                  }`}
-                  onClick={() => navigate('/transactions')}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`rounded p-2 ${transaction.type === 'income' ? (isDark ? 'bg-[#00d084]/10 text-[#00d084]' : 'bg-green-100 text-green-600') : (isDark ? 'bg-[#ff4757]/10 text-[#ff4757]' : 'bg-red-100 text-red-600')}`}>
-                      {transaction.type === 'income' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+              {recentTransactions.map((transaction) => {
+                const isIncome = transaction.type === 'income';
+                const amountColor = isIncome ? colors.green : colors.red;
+                return (
+                  <div 
+                    key={transaction.id} 
+                    className="flex cursor-pointer items-center justify-between rounded border border-border bg-card p-3 transition-colors hover:bg-muted"
+                    onClick={() => navigate('/transactions')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="rounded p-2"
+                        style={{ 
+                          backgroundColor: isIncome ? toneA('--finance-positive', 0.16) : toneA('--finance-negative', 0.16),
+                          color: amountColor,
+                        }}
+                      >
+                        {isIncome ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{transaction.category}</p>
+                        <p className="text-xs font-mono text-muted-foreground">{formatDate(transaction.date)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{transaction.category}</p>
-                      <p className={`text-xs font-mono ${isDark ? 'text-[#666666]' : 'text-gray-500'}`}>{formatDate(transaction.date)}</p>
-                    </div>
+                    <span className="font-mono font-semibold" style={{ color: amountColor }}>
+                      {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    </span>
                   </div>
-                  <span className={`font-mono font-semibold ${transaction.type === 'income' ? (isDark ? 'text-[#00d084]' : 'text-green-600') : (isDark ? 'text-[#ff4757]' : 'text-red-600')}`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </TerminalCard>
